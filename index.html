@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computational Toolbox</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <div class="navbar-brand">
+                <h1>⚗️ Computational Toolbox</h1>
+            </div>
+            <ul class="nav-menu">
+                <li><button class="nav-btn active" data-module="chemistry">Chemistry</button></li>
+                <li><button class="nav-btn" data-module="mathematics">Mathematics</button></li>
+                <li><button class="nav-btn" data-module="kinematics">Kinematics</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <div class="container">
+
+        <!-- ==================== CHEMISTRY MODULE ==================== -->
+        <section id="chemistry" class="module active">
+            <div class="module-header">
+                <h2>Chemistry & Stoichiometry</h2>
+                <div class="sub-tabs">
+                    <button class="sub-tab-btn active" data-subtab="equation-balancer">Equation Balancer</button>
+                    <button class="sub-tab-btn" data-subtab="limiting-reactant">Limiting Reactant Finder</button>
+                </div>
+            </div>
+
+            <!-- Equation Balancer Sub-Tab -->
+            <div id="equation-balancer" class="sub-tab-content active">
+                <div class="card">
+                    <h3>Equation Balancer & Variable Solver</h3>
+                    <div class="form-group">
+                        <label for="unbalanced-equation">Unbalanced Equation (e.g., Fe + Cl2 -> FeCl3):</label>
+                        <input type="text" id="unbalanced-equation" placeholder="Enter unbalanced equation" class="input-field">
+                    </div>
+                    <button id="balance-equation-btn" class="btn btn-primary">Balance Equation</button>
+                    
+                    <div id="balanced-result" class="result-card hidden">
+                        <h4>Balanced Equation:</h4>
+                        <p id="balanced-equation-output" class="equation-output"></p>
+                    </div>
+
+                    <div id="mass-calculator" class="hidden">
+                        <h4>Calculate Masses from Known Component</h4>
+                        <div class="form-group">
+                            <label for="compound-selector">Select Component:</label>
+                            <select id="compound-selector" class="input-field">
+                                <option value="">-- Select --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="known-mass">Known Mass (grams):</label>
+                            <input type="number" id="known-mass" placeholder="Enter mass" class="input-field" step="0.001">
+                        </div>
+                        <button id="calculate-masses-btn" class="btn btn-secondary">Calculate Masses</button>
+                        
+                        <div id="mass-results" class="result-card hidden">
+                            <h4>Stoichiometric Results:</h4>
+                            <div id="mass-results-content"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Limiting Reactant Finder Sub-Tab -->
+            <div id="limiting-reactant" class="sub-tab-content hidden">
+                <div class="card">
+                    <h3>Limiting & Excess Reactant Finder</h3>
+                    <div class="form-group">
+                        <label for="reactant-equation">Balanced Reaction (e.g., 2Mg + O2 -> 2MgO):</label>
+                        <input type="text" id="reactant-equation" placeholder="Enter balanced equation" class="input-field">
+                    </div>
+                    
+                    <div id="reactant-inputs" class="hidden">
+                        <h4>Enter Starting Masses</h4>
+                        <div id="reactant-mass-inputs"></div>
+                        <button id="find-limiting-btn" class="btn btn-primary">Find Limiting Reactant</button>
+                    </div>
+
+                    <button id="parse-reactant-eq-btn" class="btn btn-secondary">Parse Equation</button>
+
+                    <div id="limiting-results" class="result-card hidden">
+                        <h4>Analysis Results:</h4>
+                        <div id="limiting-results-content"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== MATHEMATICS MODULE ==================== -->
+        <section id="mathematics" class="module hidden">
+            <div class="module-header">
+                <h2>Mathematics Solvers</h2>
+                <div class="sub-tabs">
+                    <button class="sub-tab-btn active" data-subtab="quadratic">Quadratic Equation</button>
+                    <button class="sub-tab-btn" data-subtab="simultaneous">Simultaneous Equations</button>
+                </div>
+            </div>
+
+            <!-- Quadratic Equation Sub-Tab -->
+            <div id="quadratic" class="sub-tab-content active">
+                <div class="card">
+                    <h3>Quadratic Equation Solver</h3>
+                    <p class="subtitle">Solve: ax² + bx + c = 0</p>
+                    
+                    <div class="form-group">
+                        <label for="quad-a">Coefficient a:</label>
+                        <input type="number" id="quad-a" placeholder="Enter a" class="input-field" step="0.001">
+                    </div>
+                    <div class="form-group">
+                        <label for="quad-b">Coefficient b:</label>
+                        <input type="number" id="quad-b" placeholder="Enter b" class="input-field" step="0.001">
+                    </div>
+                    <div class="form-group">
+                        <label for="quad-c">Coefficient c:</label>
+                        <input type="number" id="quad-c" placeholder="Enter c" class="input-field" step="0.001">
+                    </div>
+
+                    <button id="solve-quadratic-btn" class="btn btn-primary">Solve Quadratic</button>
+
+                    <div id="quadratic-results" class="result-card hidden">
+                        <h4>Solutions:</h4>
+                        <div id="quadratic-results-content"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Simultaneous Equations Sub-Tab -->
+            <div id="simultaneous" class="sub-tab-content hidden">
+                <div class="card">
+                    <h3>Simultaneous Linear Equations Solver</h3>
+                    
+                    <div class="form-group">
+                        <label>Number of Variables:</label>
+                        <div class="radio-group">
+                            <label>
+                                <input type="radio" name="eq-variables" value="2" checked> 2 Variables
+                            </label>
+                            <label>
+                                <input type="radio" name="eq-variables" value="3"> 3 Variables
+                            </label>
+                        </div>
+                    </div>
+
+                    <div id="equations-container"></div>
+
+                    <button id="solve-simultaneous-btn" class="btn btn-primary">Solve System</button>
+
+                    <div id="simultaneous-results" class="result-card hidden">
+                        <h4>Solution:</h4>
+                        <div id="simultaneous-results-content"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== KINEMATICS MODULE ==================== -->
+        <section id="kinematics" class="module hidden">
+            <div class="module-header">
+                <h2>Kinematics Solver</h2>
+            </div>
+
+            <div class="card">
+                <h3>Kinematic Equations Solver</h3>
+                <p class="subtitle">Provide exactly 3 known variables out of the 5</p>
+
+                <div class="kinematics-grid">
+                    <div class="form-group">
+                        <label for="kin-u">Initial Velocity u (m/s):</label>
+                        <input type="number" id="kin-u" placeholder="u" class="input-field" step="0.001">
+                    </div>
+                    <div class="form-group">
+                        <label for="kin-v">Final Velocity v (m/s):</label>
+                        <input type="number" id="kin-v" placeholder="v" class="input-field" step="0.001">
+                    </div>
+                    <div class="form-group">
+                        <label for="kin-a">Acceleration a (m/s²):</label>
+                        <input type="number" id="kin-a" placeholder="a" class="input-field" step="0.001">
+                    </div>
+                    <div class="form-group">
+                        <label for="kin-s">Displacement s (m):</label>
+                        <input type="number" id="kin-s" placeholder="s" class="input-field" step="0.001">
+                    </div>
+                    <div class="form-group">
+                        <label for="kin-t">Time t (s):</label>
+                        <input type="number" id="kin-t" placeholder="t" class="input-field" step="0.001">
+                    </div>
+                </div>
+
+                <button id="solve-kinematics-btn" class="btn btn-primary">Solve Kinematics</button>
+
+                <div id="kinematics-results" class="result-card hidden">
+                    <h4>Solution:</h4>
+                    <div id="kinematics-results-content"></div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 Computational Toolbox. All calculations performed client-side.</p>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
