@@ -1,751 +1,512 @@
-
-document.addEventListener('DOMContentLoaded', () => {
-
-    // ==================== PERIODIC TABLE DATA ==================== 
-    const periodicTable = {
-        H: 1.008, He: 4.003, Li: 6.94, Be: 9.012, B: 10.81, C: 12.011, N: 14.007,
-        O: 15.999, F: 18.998, Ne: 20.180, Na: 22.990, Mg: 24.305, Al: 26.982,
-        Si: 28.085, P: 30.974, S: 32.06, Cl: 35.45, Ar: 39.948, K: 39.098,
-        Ca: 40.078, Sc: 44.956, Ti: 47.867, V: 50.942, Cr: 51.996, Mn: 54.938,
-        Fe: 55.845, Co: 58.933, Ni: 58.693, Cu: 63.546, Zn: 65.38, Ga: 69.723,
-        Ge: 72.630, As: 74.922, Se: 78.971, Br: 79.904, Kr: 83.798, Rb: 85.468,
-        Sr: 87.62, Y: 88.906, Zr: 91.224, Nb: 92.906, Mo: 95.95, Ru: 101.07,
-        Rh: 102.906, Pd: 106.42, Ag: 107.868, Cd: 112.414, In: 114.818, Sn: 118.710,
-        Sb: 121.760, Te: 127.60, I: 126.904, Xe: 131.293, Cs: 132.905, Ba: 137.327,
-        La: 138.905, Ce: 140.116, Pr: 140.908, Nd: 144.242, Sm: 150.36, Eu: 151.964,
-        Gd: 157.25, Tb: 158.925, Dy: 162.500, Ho: 164.930, Er: 167.259, Tm: 168.934,
-        Yb: 173.054, Lu: 174.967, Hf: 178.49, Ta: 180.948, W: 183.84, Re: 186.207,
-        Os: 190.23, Ir: 192.217, Pt: 195.084, Au: 196.967, Hg: 200.592, Tl: 204.38,
-        Pb: 207.2, Bi: 208.980, Th: 232.038, Pa: 231.036, U: 238.029
+document.addEventListener("DOMContentLoaded", () => {
+    
+    // --- STANDARD COMPREHENSIVE PERIODIC TABLE REFERENCE ---
+    const ATOMIC_MASSES = {
+        H: 1.008, He: 4.003, Li: 6.94, Be: 9.012, B: 10.81, C: 12.011, N: 14.007, O: 15.999, F: 18.998, Ne: 20.180,
+        Na: 22.990, Mg: 24.305, Al: 26.982, Si: 28.085, P: 30.974, S: 32.06, Cl: 35.45, Ar: 39.948, K: 39.098,
+        Ca: 40.078, Sc: 44.956, Ti: 47.867, V: 50.942, Cr: 51.996, Mn: 54.938, Fe: 55.845, Co: 58.933, Ni: 58.693,
+        Cu: 63.546, Zn: 65.38, Ga: 69.723, Ge: 72.630, As: 74.922, Se: 78.971, Br: 79.904, Kr: 83.798, Rb: 85.468,
+        Sr: 87.62, Y: 88.906, Zr: 91.224, Nb: 92.906, Mo: 95.95, Ru: 101.07, Rh: 102.906, Pd: 106.42, Ag: 107.868,
+        Cd: 112.414, In: 114.818, Sn: 118.710, Sb: 121.760, Te: 127.60, I: 126.904, Xe: 131.293, Cs: 132.905,
+        Ba: 137.327, La: 138.905, Ce: 140.116, Pr: 140.908, Nd: 144.242, Sm: 150.36, Eu: 151.964, Gd: 157.25,
+        Tb: 158.925, Dy: 162.500, Ho: 164.930, Er: 167.259, Tm: 168.934, Yb: 173.054, Lu: 174.967, Hf: 178.49,
+        Ta: 180.948, W: 183.84, Re: 186.207, Os: 190.23, Ir: 192.217, Pt: 195.084, Au: 196.967, Hg: 200.592,
+        Tl: 204.38, Pb: 207.2, Bi: 208.980, Th: 232.038, Pa: 231.036, U: 238.029
     };
+    const GAS_RTP_VOLUME = 24.0; // dm^3 / mol
 
-    const molarVolumeRTP = 24.0; // dm³/mol at RTP
-    const gasCompounds = ['H2', 'O2', 'N2', 'Cl2', 'F2', 'Br2', 'I2', 'CO2', 'NH3', 'HCl', 'SO2', 'NO', 'NO2', 'N2O', 'CH4', 'C2H6', 'C3H8'];
+    // Cache parsed state values for the current active chemical reaction
+    let CURRENT_BALANCED_REACTION = null;
 
-    // ==================== UTILITY FUNCTIONS ==================== 
-    const parseChemicalFormula = (formula) => {
-        const elements = {};
-        const regex = /([A-Z][a-z]?)(\d*)/g;
-        let match;
-        while ((match = regex.exec(formula)) !== null) {
-            const element = match[1];
-            const count = match[2] ? parseInt(match[2]) : 1;
-            elements[element] = (elements[element] || 0) + count;
-        }
-        return elements;
-    };
+    // --- TAB VIEW MANAGER CONTROLLER ---
+    const bindTabControllers = (navContainerClass, activeBtnClass, hiddenViewClass) => {
+        const containers = document.querySelectorAll(navContainerClass);
+        containers.forEach(container => {
+            container.addEventListener("click", (e) => {
+                const targetBtn = e.target.closest("button");
+                if (!targetBtn) return;
+                
+                const tabGroupId = targetBtn.dataset.tab || targetBtn.dataset.subtab;
+                if (!tabGroupId) return;
 
-    const calculateMolarMass = (formula) => {
-        const elements = parseChemicalFormula(formula);
-        let mass = 0;
-        for (const [element, count] of Object.entries(elements)) {
-            if (!periodicTable[element]) return null;
-            mass += periodicTable[element] * count;
-        }
-        return mass;
-    };
+                // Alternate active configurations across sibling nodes
+                Array.from(container.children).forEach(btn => btn.classList.remove(activeBtnClass));
+                targetBtn.classList.add(activeBtnClass);
 
-    const parseEquation = (equation) => {
-        const [reactantsStr, productsStr] = equation.split('->').map(s => s.trim());
-        if (!reactantsStr || !productsStr) return null;
-        
-        const parseCompounds = (str) => {
-            return str.split('+').map(s => {
-                const trimmed = s.trim();
-                const match = trimmed.match(/^(\d*\.?\d*)\s*(.+)$/);
-                const coeff = match ? (match[1] ? parseFloat(match[1]) : 1) : 1;
-                const compound = match ? match[2].trim() : trimmed;
-                return { compound, coeff };
-            });
-        };
-
-        const reactants = parseCompounds(reactantsStr);
-        const products = parseCompounds(productsStr);
-        
-        return { reactants, products };
-    };
-
-    const balanceEquation = (equation) => {
-        const parsed = parseEquation(equation);
-        if (!parsed) return null;
-
-        const { reactants, products } = parsed;
-        const allCompounds = [...reactants.map(r => r.compound), ...products.map(p => p.compound)];
-        
-        // Attempt simple balancing for common reactions
-        let coeffs = Array(reactants.length + products.length).fill(1);
-        
-        // Simple algorithm: use LCM approach for straightforward reactions
-        try {
-            // For educational purposes, we'll implement a working solution for common reactions
-            const reactantFormulas = reactants.map(r => parseChemicalFormula(r.compound));
-            const productFormulas = products.map(p => parseChemicalFormula(p.compound));
-            
-            // Check if it's already balanced
-            const isBalanced = (coeffs) => {
-                const elementCounts = {};
-                reactants.forEach((r, i) => {
-                    const elements = parseChemicalFormula(r.compound);
-                    Object.entries(elements).forEach(([el, cnt]) => {
-                        elementCounts[el] = (elementCounts[el] || 0) + cnt * coeffs[i];
-                    });
-                });
-                let balanced = true;
-                products.forEach((p, i) => {
-                    const elements = parseChemicalFormula(p.compound);
-                    Object.entries(elements).forEach(([el, cnt]) => {
-                        elementCounts[el] = (elementCounts[el] || 0) - cnt * coeffs[reactants.length + i];
-                        if (elementCounts[el] !== 0) balanced = false;
-                    });
-                });
-                return balanced;
-            };
-
-            // Try common coefficient combinations up to 10
-            const tryCoefficients = () => {
-                const maxCoeff = 10;
-                for (let c1 = 1; c1 <= maxCoeff; c1++) {
-                    for (let c2 = 1; c2 <= maxCoeff; c2++) {
-                        for (let c3 = 1; c3 <= maxCoeff; c3++) {
-                            for (let c4 = 1; c4 <= maxCoeff; c4++) {
-                                const testCoeffs = [c1, c2, c3, c4];
-                                if (isBalanced(testCoeffs)) return testCoeffs.slice(0, coeffs.length);
-                            }
+                // Hide matching structural panels matching specific sibling cards
+                const viewPanels = Array.from(container.nextElementSibling.parentElement.querySelectorAll(`:scope > .sub-tab-content, :scope > .module-card, #chemistry-module > .sub-tab-content`));
+                viewPanels.forEach(panel => {
+                    if (panel.id === tabGroupId) {
+                        panel.classList.remove(hiddenViewClass);
+                    } else if (panel.classList.contains('sub-nav') === false) {
+                        const targetSiblingAttr = panel.parentElement.id === "chemistry-module" ? 'data-subtab' : 'data-tab';
+                        if (container.querySelector(`[${targetSiblingAttr}="${panel.id}"]`)) {
+                            panel.classList.add(hiddenViewClass);
                         }
                     }
-                }
-                return null;
-            };
-
-            const balanced = tryCoefficients();
-            if (balanced) {
-                coeffs = balanced;
-            }
-        } catch (e) {
-            // Fallback to input coefficients if complex
-        }
-
-        let balancedStr = '';
-        reactants.forEach((r, i) => {
-            balancedStr += (coeffs[i] > 1 ? coeffs[i] : '') + r.compound;
-            if (i < reactants.length - 1) balancedStr += ' + ';
+                });
+            });
         });
-        balancedStr += ' → ';
-        products.forEach((p, i) => {
-            balancedStr += (coeffs[reactants.length + i] > 1 ? coeffs[reactants.length + i] : '') + p.compound;
-            if (i < products.length - 1) balancedStr += ' + ';
-        });
-
-        return { balancedStr, reactants, products, coeffs: coeffs.slice(0, reactants.length + products.length) };
     };
 
-    // ==================== CHEMISTRY MODULE ==================== 
+    bindTabControllers(".main-nav", "active", "hidden");
+    bindTabControllers(".sub-nav", "active", "hidden");
 
-    // Equation Balancer
-    const balanceEquationBtn = document.getElementById('balance-equation-btn');
-    const unbalancedInput = document.getElementById('unbalanced-equation');
-    const balancedOutput = document.getElementById('balanced-equation-output');
-    const balancedResult = document.getElementById('balanced-result');
-    const massCalculator = document.getElementById('mass-calculator');
-    const compoundSelector = document.getElementById('compound-selector');
-    const calculateMassesBtn = document.getElementById('calculate-masses-btn');
-    const massResults = document.getElementById('mass-results');
-    const massResultsContent = document.getElementById('mass-results-content');
-
-    let balancedEquationData = null;
-
-    balanceEquationBtn.addEventListener('click', () => {
-        const equation = unbalancedInput.value.trim();
-        if (!equation) {
-            alert('Please enter an equation');
-            return;
-        }
-
-        const result = balanceEquation(equation);
-        if (!result) {
-            alert('Could not parse equation. Use format: A + B -> C + D');
-            return;
-        }
-
-        balancedEquationData = result;
-        balancedOutput.textContent = result.balancedStr;
-        balancedResult.classList.remove('hidden');
-        massCalculator.classList.remove('hidden');
-
-        // Populate compound selector
-        compoundSelector.innerHTML = '<option value="">-- Select --</option>';
-        const allCompounds = [...result.reactants, ...result.products].map(c => c.compound);
-        allCompounds.forEach(compound => {
-            const option = document.createElement('option');
-            option.value = compound;
-            option.textContent = compound;
-            compoundSelector.appendChild(option);
+    // Math Matrix Switcher Sub-logic
+    const simModeInputs = document.querySelectorAll('input[name="sim-mode"]');
+    simModeInputs.forEach(radio => {
+        radio.addEventListener("change", (e) => {
+            if (e.target.value === "2var") {
+                document.getElementById("inputs-2var").classList.remove("hidden");
+                document.getElementById("inputs-3var").classList.add("hidden");
+            } else {
+                document.getElementById("inputs-2var").classList.add("hidden");
+                document.getElementById("inputs-3var").classList.remove("hidden");
+            }
         });
-
-        massResults.classList.add('hidden');
     });
 
-    calculateMassesBtn.addEventListener('click', () => {
-        if (!balancedEquationData) return;
-        const selectedCompound = compoundSelector.value;
-        const knownMass = parseFloat(document.getElementById('known-mass').value);
 
-        if (!selectedCompound || isNaN(knownMass) || knownMass <= 0) {
-            alert('Please select a compound and enter a valid mass');
-            return;
-        }
-
-        const { reactants, products, coeffs } = balancedEquationData;
-        const allCompounds = [...reactants, ...products];
-        const selectedIndex = allCompounds.findIndex(c => c.compound === selectedCompound);
+    // --- CHEMISTRY ALGORITHMIC PARSING & SOLVER ENGINE ---
+    
+    // Parses strings like "H2O" or "Ca(OH)2" into element counts
+    const parseChemicalFormula = (formulaStr) => {
+        const elementReg = /([A-Z][a-z]*)(\d*)/g;
+        const outMap = {};
+        let parsedMatch;
         
-        if (selectedIndex === -1) return;
-
-        const molarMass = calculateMolarMass(selectedCompound);
-        if (!molarMass) {
-            alert('Could not calculate molar mass');
-            return;
+        // Basic check for nested bracket sets
+        if (formulaStr.includes('(')) {
+            const bracketReg = /\(([^)]+)\)(\d*)/g;
+            let replacedStr = formulaStr;
+            let bracketMatch;
+            while ((bracketMatch = bracketReg.exec(formulaStr)) !== null) {
+                const innerElements = parseChemicalFormula(bracketMatch[1]);
+                const multiplier = parseInt(bracketMatch[2] || 1, 10);
+                Object.keys(innerElements).forEach(el => {
+                    outMap[el] = (outMap[el] || 0) + innerElements[el] * multiplier;
+                });
+                replacedStr = replacedStr.replace(bracketMatch[0], '');
+            }
+            formulaStr = replacedStr;
         }
 
-        const knownMoles = knownMass / molarMass;
-        const selectedCoeff = coeffs[selectedIndex];
-        const results = {};
+        while ((parsedMatch = elementReg.exec(formulaStr)) !== null) {
+            const el = parsedMatch[1];
+            if (!ATOMIC_MASSES[el]) throw new Error(`Unknown element symbol: ${el}`);
+            const count = parseInt(parsedMatch[2] || 1, 10);
+            outMap[el] = (outMap[el] || 0) + count;
+        }
+        return outMap;
+    };
 
-        allCompounds.forEach((compound, index) => {
-            const compoundCoeff = coeffs[index];
-            const molarRatio = compoundCoeff / selectedCoeff;
-            const compoundMoles = knownMoles * molarRatio;
-            const compoundMolarMass = calculateMolarMass(compound.compound);
-            const compoundMass = compoundMoles * compoundMolarMass;
-            const compoundVolume = gasCompounds.includes(compound.compound) ? compoundMoles * molarVolumeRTP : null;
+    const getMolarMass = (formulaStr) => {
+        const elementCounts = parseChemicalFormula(formulaStr);
+        return Object.entries(elementCounts).reduce((acc, [el, count]) => acc + (ATOMIC_MASSES[el] * count), 0);
+    };
 
-            results[compound.compound] = {
-                mass: compoundMass,
-                moles: compoundMoles,
-                volume: compoundVolume
+    // Helper to extract clean coefficients and formulas
+    const parseReactionSide = (sideString) => {
+        return sideString.split('+').map(item => {
+            const cleanItem = item.trim();
+            const match = cleanItem.match(/^(\d*)([A-Za-z0-9()]+)$/);
+            if (!match) throw new Error("Malformed formula construct encountered.");
+            return {
+                coefficient: parseInt(match[1] || 1, 10),
+                formula: match[2]
             };
         });
+    };
 
-        massResultsContent.innerHTML = '';
-        Object.entries(results).forEach(([compound, data]) => {
-            const div = document.createElement('div');
-            div.className = 'result-item';
-            let content = `<div class="result-item-label">${compound}</div>
-                <div class="result-item-value">Moles: ${data.moles.toFixed(6)} mol | Mass: ${data.mass.toFixed(4)} g`;
-            if (data.volume !== null) {
-                content += ` | Volume: ${data.volume.toFixed(3)} dm³`;
-            }
-            content += '</div>';
-            div.innerHTML = content;
-            massResultsContent.appendChild(div);
-        });
-
-        massResults.classList.remove('hidden');
-    });
-
-    // Limiting Reactant Finder
-    const parseReactantEqBtn = document.getElementById('parse-reactant-eq-btn');
-    const reactantEquationInput = document.getElementById('reactant-equation');
-    const reactantInputsDiv = document.getElementById('reactant-inputs');
-    const reactantMassInputsDiv = document.getElementById('reactant-mass-inputs');
-    const findLimitingBtn = document.getElementById('find-limiting-btn');
-    const limitingResults = document.getElementById('limiting-results');
-    const limitingResultsContent = document.getElementById('limiting-results-content');
-
-    let limitingEquationData = null;
-
-    parseReactantEqBtn.addEventListener('click', () => {
-        const equation = reactantEquationInput.value.trim();
-        if (!equation) {
-            alert('Please enter an equation');
-            return;
-        }
-
-        const parsed = parseEquation(equation);
-        if (!parsed) {
-            alert('Could not parse equation');
-            return;
-        }
-
-        limitingEquationData = parsed;
-        reactantMassInputsDiv.innerHTML = '';
-        parsed.reactants.forEach(r => {
-            const div = document.createElement('div');
-            div.className = 'form-group';
-            div.innerHTML = `<label>${r.compound} mass (g):</label>
-                <input type="number" class="reactant-mass-input" data-compound="${r.compound}" placeholder="Enter mass" step="0.001">`;
-            reactantMassInputsDiv.appendChild(div);
-        });
-
-        reactantInputsDiv.classList.remove('hidden');
-        limitingResults.classList.add('hidden');
-    });
-
-    findLimitingBtn.addEventListener('click', () => {
-        if (!limitingEquationData) return;
-
-        const inputs = Array.from(document.querySelectorAll('.reactant-mass-input'));
-        const masses = {};
-        let allFilled = true;
-
-        inputs.forEach(input => {
-            const mass = parseFloat(input.value);
-            if (isNaN(mass) || mass <= 0) {
-                allFilled = false;
-            }
-            masses[input.dataset.compound] = mass;
-        });
-
-        if (!allFilled) {
-            alert('Please enter valid masses for all reactants');
-            return;
-        }
-
-        const { reactants } = limitingEquationData;
-        const reactantCoeffs = reactants.map(r => r.coeff);
+    // Linear Algebra Balancing Core Engine via Nullspace Estimation Mapping
+    const balanceReactionEngine = (rawEquationStr) => {
+        if (!rawEquationStr.includes('->')) throw new Error("Missing reaction arrow (->)");
+        const [leftSide, rightSide] = rawEquationStr.split('->');
         
-        // Parse coefficients from equation string
-        const coefficients = [];
-        reactants.forEach((r, i) => {
-            const regex = /^(\d+)?/;
-            const match = reactantEquationInput.value.match(regex);
-            coefficients[i] = match && match[1] ? parseInt(match[1]) : 1;
-        });
+        const reactants = parseReactionSide(leftSide);
+        const products = parseReactionSide(rightSide);
+        const allCompounds = [...reactants, ...products];
 
-        let analysisHtml = '<div class="result-item"><div class="result-item-label">Analysis:</div>';
+        // Track atomic indices across matrix boundaries
+        const elementalSet = new Set();
+        allCompounds.forEach(c => Object.keys(parseChemicalFormula(c.formula)).forEach(el => elementalSet.add(el)));
+        const elementList = Array.from(elementalSet);
 
-        const moles = {};
-        const molarMasses = {};
-        reactants.forEach((r, i) => {
-            molarMasses[r.compound] = calculateMolarMass(r.compound);
-            moles[r.compound] = masses[r.compound] / molarMasses[r.compound];
-        });
-
-        // Calculate RMR (Required Molar Ratio) from coefficients
-        const parseCoefficients = (equation) => {
-            const coeffs = [];
-            const parts = equation.split('->')[0].split('+');
-            parts.forEach(part => {
-                const match = part.trim().match(/^(\d+)?/);
-                coeffs.push(match && match[1] ? parseInt(match[1]) : 1);
+        // Build balancing system rows (Rows = Elements, Columns = Chemical Compounds)
+        const matrix = elementList.map(el => {
+            return allCompounds.map((comp, idx) => {
+                const composition = parseChemicalFormula(comp.formula);
+                const atomicCount = composition[el] || 0;
+                return idx < reactants.length ? atomicCount : -atomicCount;
             });
-            return coeffs;
+        });
+
+        // Solve vector components linearly for small systems up to coefficient bounds of 10
+        const compoundCount = allCompounds.length;
+        let foundCoefficients = null;
+
+        const findNullspaceVector = (index, currentVector) => {
+            if (foundCoefficients) return;
+            if (index === compoundCount) {
+                // Validate if current vector zero-maps every element equation row
+                const satisfiesAll = matrix.every(row => 
+                    row.reduce((sum, val, idx) => sum + val * currentVector[idx], 0) === 0
+                );
+                if (satisfiesAll) foundCoefficients = [...currentVector];
+                return;
+            }
+            // Dynamic check ranges up to balance scaling boundary factor 12
+            for (let cVal = 1; cVal <= 12; cVal++) {
+                currentVector[index] = cVal;
+                findNullspaceVector(index + 1, currentVector);
+                if (foundCoefficients) return;
+            }
         };
 
-        const RMR = parseCoefficients(reactantEquationInput.value);
-        let AMR = [];
-        let limitingReactant = null;
-        let minRatio = Infinity;
+        findNullspaceVector(0, new Array(compoundCount).fill(1));
 
-        reactants.forEach((r, i) => {
-            AMR[i] = moles[r.compound];
-            const ratio = moles[r.compound] / RMR[i];
-            if (ratio < minRatio) {
-                minRatio = ratio;
-                limitingReactant = r.compound;
-            }
-        });
+        if (!foundCoefficients) throw new Error("Could not compute simple integer balancing ratios automatically.");
 
-        analysisHtml += `<div class="result-item-value">
-            <strong>Required Molar Ratio (RMR):</strong> ${RMR.join(' : ')}<br>
-            <strong>Available Moles:</strong> ${reactants.map(r => `${r.compound}: ${moles[r.compound].toFixed(6)} mol`).join(' | ')}<br>
-            <strong>Limiting Reactant:</strong> <span style="color: #ff9090;">${limitingReactant}</span><br>
-        </div></div>';
+        // Map computed scalar indexes back to distinct arrays
+        const balancedReactants = reactants.map((r, i) => ({
+            coeff: foundCoefficients[i], formula: r.formula, molarMass: getMolarMass(r.formula)
+        }));
+        const balancedProducts = products.map((p, i) => ({
+            coeff: foundCoefficients[reactants.length + i], formula: p.formula, molarMass: getMolarMass(p.formula)
+        }));
 
-        // Calculate excess
-        reactants.forEach((r, i) => {
-            if (r.compound !== limitingReactant) {
-                const limitingMoles = moles[limitingReactant];
-                const requireForLimiting = (limitingMoles * RMR[i]) / RMR[reactants.findIndex(rr => rr.compound === limitingReactant)];
-                const excessMoles = AMR[i] - requireForLimiting;
-                const excessMass = excessMoles * molarMasses[r.compound];
-                analysisHtml += `<div class="result-item"><div class="result-item-label">Excess Reactant: ${r.compound}</div>
-                    <div class="result-item-value">Excess Moles: ${excessMoles.toFixed(6)} mol<br>
-                    Excess Mass: ${excessMass.toFixed(4)} g</div></div>`;
-            }
-        });
+        return { reactants: balancedReactants, products: balancedProducts };
+    };
 
-        limitingResultsContent.innerHTML = analysisHtml;
-        limitingResults.classList.remove('hidden');
+    // --- EXECUTE CHEMISTRY UI HOOKS ---
+    document.getElementById("btn-balance").addEventListener("click", () => {
+        const eqInput = document.getElementById("input-equation").value;
+        const outBox = document.getElementById("balance-result-box");
+        const outText = document.getElementById("output-balanced-eq");
+        const selectBox = document.getElementById("select-known-chem");
+
+        try {
+            if (!eqInput.trim()) throw new Error("Please type an expression first.");
+            const balancedData = balanceReactionEngine(eqInput);
+            CURRENT_BALANCED_REACTION = balancedData;
+
+            // Render beautifully formatted formula string outputs
+            const mapStr = arr => arr.map(item => `${item.coeff === 1 ? '' : item.coeff}${item.formula}`).join(" + ");
+            outText.textContent = `${mapStr(balancedData.reactants)} ➔ ${mapStr(balancedData.products)}`;
+
+            // Populate the variable selection menu list
+            selectBox.innerHTML = "";
+            [...balancedData.reactants, ...balancedData.products].forEach(item => {
+                const opt = document.createElement("option");
+                opt.value = item.formula;
+                opt.textContent = `${item.formula} (Molar Mass: ${item.molarMass.toFixed(3)} g/mol)`;
+                selectBox.appendChild(opt);
+            });
+
+            outBox.classList.remove("hidden");
+        } catch (err) {
+            outText.innerHTML = `<span class="error-message">Error: ${err.message}</span>`;
+            outBox.classList.remove("hidden");
+            document.getElementById("stoich-steps-output").innerHTML = "";
+        }
     });
 
-    // ==================== MATHEMATICS MODULE ==================== 
+    document.getElementById("btn-solve-stoich").addEventListener("click", () => {
+        if (!CURRENT_BALANCED_REACTION) return;
+        const knownFormula = document.getElementById("select-known-chem").value;
+        const knownMass = parseFloat(document.getElementById("input-known-mass").value);
+        const stepsZone = document.getElementById("stoich-steps-output");
+        stepsZone.innerHTML = "";
 
-    // Quadratic Equation Solver
-    const quadAInput = document.getElementById('quad-a');
-    const quadBInput = document.getElementById('quad-b');
-    const quadCInput = document.getElementById('quad-c');
-    const solveQuadraticBtn = document.getElementById('solve-quadratic-btn');
-    const quadraticResults = document.getElementById('quadratic-results');
-    const quadraticResultsContent = document.getElementById('quadratic-results-content');
+        if (isNaN(knownMass) || knownMass <= 0) {
+            stepsZone.innerHTML = `<div class="error-message">Please enter a valid positive mass value.</div>`;
+            return;
+        }
 
-    solveQuadraticBtn.addEventListener('click', () => {
-        const a = parseFloat(quadAInput.value);
-        const b = parseFloat(quadBInput.value);
-        const c = parseFloat(quadCInput.value);
+        const allComps = [...CURRENT_BALANCED_REACTION.reactants, ...CURRENT_BALANCED_REACTION.products];
+        const sourceChem = allComps.find(c => c.formula === knownFormula);
+        const baseMoles = knownMass / sourceChem.molarMass;
+
+        // Generate individual target tracking elements using pure stoichiometric arrays
+        allComps.forEach(targetChem => {
+            if (targetChem.formula === sourceChem.formula) return;
+
+            const moleRatio = targetChem.coeff / sourceChem.coeff;
+            const computedMoles = baseMoles * moleRatio;
+            const computedMass = computedMoles * targetChem.molarMass;
+
+            const card = document.createElement("div");
+            card.className = "step-card";
+            
+            // Gas property check wrapper context logic
+            let extraGasInfo = "";
+            const isGas = ["O2", "Cl2", "H2", "N2", "CO2", "NH3", "SO2"].includes(targetChem.formula);
+            if (isGas) {
+                const gasVol = computedMoles * GAS_RTP_VOLUME;
+                extraGasInfo = `<br><strong>Volume at RTP:</strong> ${gasVol.toFixed(3)} dm³ (liters)`;
+            }
+
+            card.innerHTML = `
+                <div class="step-header">Target Substance Yield: ${targetChem.formula}</div>
+                <div>Molar Ratio: ${targetChem.coeff} / ${sourceChem.coeff} = ${moleRatio.toFixed(4)}</div>
+                <div>Calculated Moles: ${computedMoles.toFixed(4)} mol</div>
+                <div><strong>Predicted Mass:</strong> ${computedMass.toFixed(3)} grams ${extraGasInfo}</div>
+            `;
+            stepsZone.appendChild(card);
+        });
+    });
+
+    // Subtab 2 UI: Limiting & Excess Reactor Engine implementation
+    document.getElementById("btn-find-limiting").addEventListener("click", () => {
+        const inputEq = document.getElementById("input-limiting-eq").value;
+        const massA = parseFloat(document.getElementById("input-mass-a").value);
+        const massB = parseFloat(document.getElementById("input-mass-b").value);
+        const outBox = document.getElementById("limiting-result-box");
+        outBox.innerHTML = "";
+
+        try {
+            if (!inputEq.trim() || isNaN(massA) || isNaN(massB)) throw new Error("Ensure all inputs and reactions are filled.");
+            const balancedData = balanceReactionEngine(inputEq);
+            
+            if (balancedData.reactants.length !== 2) throw new Error("Limiting subtab requires exactly 2 starting reactants.");
+
+            const rA = balancedData.reactants[0];
+            const rB = balancedData.reactants[1];
+
+            const molesA = massA / rA.molarMass;
+            const molesB = massB / rB.molarMass;
+
+            // Core RMR vs AMR comparison architecture logic
+            const RMR = rA.coeff / rB.coeff;
+            const AMR = molesA / molesB;
+
+            let limiting, excess, leftoverMass;
+
+            if (AMR < RMR) {
+                // Reactant A runs dry first
+                limiting = rA;
+                excess = rB;
+                const molesConsumedB = molesA * (rB.coeff / rA.coeff);
+                leftoverMass = (molesB - molesConsumedB) * rB.molarMass;
+            } else {
+                // Reactant B runs dry first
+                limiting = rB;
+                excess = rA;
+                const molesConsumedA = molesB * (rA.coeff / rB.coeff);
+                leftoverMass = (molesA - molesConsumedA) * rA.molarMass;
+            }
+
+            outBox.innerHTML = `
+                <div class="step-header">Analysis Steps (AMR vs RMR Method)</div>
+                <div class="step-card">
+                    <p>• Moles of ${rA.formula}: ${molesA.toFixed(4)} mol (Given: ${massA}g)</p>
+                    <p>• Moles of ${rB.formula}: ${molesB.toFixed(4)} mol (Given: ${massB}g)</p>
+                    <p>• <strong>Required Molar Ratio (RMR)</strong> [${rA.formula}/${rB.formula}]: ${rA.coeff} / ${rB.coeff} = <strong>${RMR.toFixed(4)}</strong></p>
+                    <p>• <strong>Available Molar Ratio (AMR)</strong> [${rA.formula}/${rB.formula}]: ${molesA.toFixed(4)} / ${molesB.toFixed(4)} = <strong>${AMR.toFixed(4)}</strong></p>
+                </div>
+                <div class="step-card" style="margin-top:0.8rem; border-color: var(--emerald);">
+                    <p>🚨 <strong>Limiting Reactant:</strong> <span style="color:var(--error-red); font-weight:700;">${limiting.formula}</span></p>
+                    <p>📦 <strong>Excess Reactant:</strong> ${excess.formula}</p>
+                    <p>⚖️ <strong>Unreacted Excess Mass Remaining:</strong> ${leftoverMass.toFixed(3)} grams</p>
+                </div>
+            `;
+            outBox.classList.remove("hidden");
+
+        } catch (err) {
+            outBox.innerHTML = `<span class="error-message">Error: ${err.message}</span>`;
+            outBox.classList.remove("hidden");
+        }
+    });
+
+
+    // --- MATHEMATICS EQUATION ENGINE ---
+
+    document.getElementById("btn-solve-quadratic").addEventListener("click", () => {
+        const a = parseFloat(document.getElementById("quad-a").value);
+        const b = parseFloat(document.getElementById("quad-b").value);
+        const c = parseFloat(document.getElementById("quad-c").value);
+        const outBox = document.getElementById("quadratic-result-box");
+        outBox.innerHTML = "";
 
         if (isNaN(a) || isNaN(b) || isNaN(c)) {
-            alert('Please enter valid coefficients');
+            outBox.innerHTML = `<div class="error-message">Provide all coefficients cleanly.</div>`;
+            outBox.classList.remove("hidden");
             return;
         }
 
         if (a === 0) {
-            alert('Coefficient a cannot be zero');
+            outBox.innerHTML = `<div class="error-message">Coefficient 'a' cannot be 0 in a standard quadratic function.</div>`;
+            outBox.classList.remove("hidden");
             return;
         }
 
-        const discriminant = b * b - 4 * a * c;
-        let html = '';
+        const discriminant = (b * b) - (4 * a * c);
+        outBox.innerHTML = `<h4>Solution Output:</h4>`;
 
         if (discriminant > 0) {
-            const x1 = (-b + Math.sqrt(discriminant)) / (2 * a);
-            const x2 = (-b - Math.sqrt(discriminant)) / (2 * a);
-            html = `<div class="result-item">
-                <div class="result-item-label">Two Real Roots</div>
-                <div class="result-item-value">x₁ = ${x1.toFixed(8)}<br>x₂ = ${x2.toFixed(8)}</div>
-            </div>`;
+            const root1 = (-b + Math.sqrt(discriminant)) / (2 * a);
+            const root2 = (-b - Math.sqrt(discriminant)) / (2 * a);
+            outBox.innerHTML += `<p class="highlight-text">Two Distinct Real Roots:</p>
+                                 <p>x₁ = ${root1.toFixed(4)}</p><p>x₂ = ${root2.toFixed(4)}</p>`;
         } else if (discriminant === 0) {
-            const x = -b / (2 * a);
-            html = `<div class="result-item">
-                <div class="result-item-label">One Distinct Root</div>
-                <div class="result-item-value">x = ${x.toFixed(8)}</div>
-            </div>`;
+            const root = -b / (2 * a);
+            outBox.innerHTML += `<p class="highlight-text">One Repeated Real Root:</p><p>x = ${root.toFixed(4)}</p>`;
         } else {
             const realPart = -b / (2 * a);
-            const imaginaryPart = Math.sqrt(-discriminant) / (2 * a);
-            html = `<div class="result-item">
-                <div class="result-item-label">Complex Roots</div>
-                <div class="result-item-value">x₁ = ${realPart.toFixed(8)} + ${imaginaryPart.toFixed(8)}i<br>x₂ = ${realPart.toFixed(8)} - ${imaginaryPart.toFixed(8)}i</div>
-            </div>`;
+            const imagPart = Math.sqrt(-discriminant) / (2 * a);
+            outBox.innerHTML += `<p class="highlight-text">Complex / Imaginary Roots:</p>
+                                 <p>x₁ = ${realPart.toFixed(4)} + ${imagPart.toFixed(4)}i</p>
+                                 <p>x₂ = ${realPart.toFixed(4)} - ${imagPart.toFixed(4)}i</p>`;
         }
-
-        html += `<div class="result-item">
-            <div class="result-item-label">Discriminant (Δ)</div>
-            <div class="result-item-value">${discriminant.toFixed(8)}</div>
-        </div>`;
-
-        quadraticResultsContent.innerHTML = html;
-        quadraticResults.classList.remove('hidden');
+        outBox.classList.remove("hidden");
     });
 
-    // Simultaneous Equations
-    const equationVariablesRadios = document.querySelectorAll('input[name="eq-variables"]');
-    const equationsContainer = document.getElementById('equations-container');
-    const solveSimultaneousBtn = document.getElementById('solve-simultaneous-btn');
-    const simultaneousResults = document.getElementById('simultaneous-results');
-    const simultaneousResultsContent = document.getElementById('simultaneous-results-content');
-
-    const renderEquationInputs = (numVariables) => {
-        equationsContainer.innerHTML = '';
-        const variables = numVariables === 2 ? ['x', 'y'] : ['x', 'y', 'z'];
-        const numEquations = numVariables;
-
-        for (let eq = 0; eq < numEquations; eq++) {
-            const eqDiv = document.createElement('div');
-            eqDiv.className = 'form-group';
-            eqDiv.innerHTML = `<label>Equation ${eq + 1}</label>`;
-            
-            const inputsDiv = document.createElement('div');
-            inputsDiv.style.display = 'flex';
-            inputsDiv.style.gap = '0.5rem';
-            inputsDiv.style.flexWrap = 'wrap';
-            inputsDiv.style.alignItems = 'center';
-
-            for (let v = 0; v < numVariables; v++) {
-                const input = document.createElement('input');
-                input.type = 'number';
-                input.className = 'input-field eq-coeff';
-                input.style.flex = '1';
-                input.style.minWidth = '60px';
-                input.placeholder = `${variables[v]}`;
-                input.dataset.equation = eq;
-                input.dataset.variable = v;
-                input.step = '0.001';
-                inputsDiv.appendChild(input);
-
-                if (v < numVariables - 1) {
-                    const label = document.createElement('span');
-                    label.textContent = variables[v] + ' + ';
-                    label.style.color = '#a0d4ff';
-                    inputsDiv.appendChild(label);
-                }
-            }
-
-            const equalLabel = document.createElement('span');
-            equalLabel.textContent = ' = ';
-            equalLabel.style.color = '#a0d4ff';
-            inputsDiv.appendChild(equalLabel);
-
-            const constantInput = document.createElement('input');
-            constantInput.type = 'number';
-            constantInput.className = 'input-field eq-const';
-            constantInput.style.flex = '1';
-            constantInput.style.minWidth = '60px';
-            constantInput.placeholder = 'Result';
-            constantInput.dataset.equation = eq;
-            constantInput.step = '0.001';
-            inputsDiv.appendChild(constantInput);
-
-            eqDiv.appendChild(inputsDiv);
-            equationsContainer.appendChild(eqDiv);
-        }
-    };
-
-    equationVariablesRadios.forEach(radio => {
-        radio.addEventListener('change', (e) => {
-            renderEquationInputs(parseInt(e.target.value));
-        });
-    });
-
-    renderEquationInputs(2);
-
-    const determinant2x2 = (matrix) => {
-        return matrix[0][0] * matrix[1][1] - matrix[0][1] * matrix[1][0];
-    };
-
-    const determinant3x3 = (matrix) => {
-        return matrix[0][0] * (matrix[1][1] * matrix[2][2] - matrix[1][2] * matrix[2][1]) -
-               matrix[0][1] * (matrix[1][0] * matrix[2][2] - matrix[1][2] * matrix[2][0]) +
-               matrix[0][2] * (matrix[1][0] * matrix[2][1] - matrix[1][1] * matrix[2][0]);
-    };
-
-    solveSimultaneousBtn.addEventListener('click', () => {
-        const numVariables = parseInt(document.querySelector('input[name="eq-variables"]:checked').value);
-        const coefficients = [];
-        const constants = [];
-
-        for (let eq = 0; eq < numVariables; eq++) {
-            const eqCoeffs = [];
-            for (let v = 0; v < numVariables; v++) {
-                const input = document.querySelector(`.eq-coeff[data-equation="${eq}"][data-variable="${v}"]`);
-                const value = parseFloat(input.value);
-                if (isNaN(value)) {
-                    alert(`Please enter valid coefficient for equation ${eq + 1}, variable ${v + 1}`);
-                    return;
-                }
-                eqCoeffs.push(value);
-            }
-            const constInput = document.querySelector(`.eq-const[data-equation="${eq}"]`);
-            const constValue = parseFloat(constInput.value);
-            if (isNaN(constValue)) {
-                alert(`Please enter valid constant for equation ${eq + 1}`);
-                return;
-            }
-            coefficients.push(eqCoeffs);
-            constants.push(constValue);
-        }
-
-        let D;
-        if (numVariables === 2) {
-            D = determinant2x2(coefficients);
-        } else {
-            D = determinant3x3(coefficients);
-        }
-
-        if (D === 0) {
-            simultaneousResultsContent.innerHTML = '<div class="error-message">System has no unique solution (Determinant is 0).</div>';
-            simultaneousResults.classList.remove('hidden');
-            return;
-        }
-
-        const variables = numVariables === 2 ? ['x', 'y'] : ['x', 'y', 'z'];
-        const solutions = {};
-
-        for (let v = 0; v < numVariables; v++) {
-            let modifiedMatrix = coefficients.map(row => [...row]);
-            for (let eq = 0; eq < numVariables; eq++) {
-                modifiedMatrix[eq][v] = constants[eq];
-            }
-
-            let Dv;
-            if (numVariables === 2) {
-                Dv = determinant2x2(modifiedMatrix);
-            } else {
-                Dv = determinant3x3(modifiedMatrix);
-            }
-
-            solutions[variables[v]] = Dv / D;
-        }
-
-        let html = '<div class="result-item"><div class="result-item-label">Solutions (Using Cramer\'s Rule)</div>';
-        html += '<div class="result-item-value">';
-        Object.entries(solutions).forEach(([variable, value]) => {
-            html += `${variable} = ${value.toFixed(8)}<br>`;
-        });
-        html += `</div></div><div class="result-item"><div class="result-item-label">Main Determinant (D)</div>
-            <div class="result-item-value">${D.toFixed(8)}</div></div>`;
-
-        simultaneousResultsContent.innerHTML = html;
-        simultaneousResults.classList.remove('hidden');
-    });
-
-    // ==================== KINEMATICS MODULE ==================== 
-
-    const kinUInput = document.getElementById('kin-u');
-    const kinVInput = document.getElementById('kin-v');
-    const kinAInput = document.getElementById('kin-a');
-    const kinSInput = document.getElementById('kin-s');
-    const kinTInput = document.getElementById('kin-t');
-    const solveKinematicsBtn = document.getElementById('solve-kinematics-btn');
-    const kinematicsResults = document.getElementById('kinematics-results');
-    const kinematicsResultsContent = document.getElementById('kinematics-results-content');
-
-    solveKinematicsBtn.addEventListener('click', () => {
-        const inputs = {
-            u: kinUInput.value.trim(),
-            v: kinVInput.value.trim(),
-            a: kinAInput.value.trim(),
-            s: kinSInput.value.trim(),
-            t: kinTInput.value.trim()
-        };
-
-        const known = Object.entries(inputs)
-            .filter(([key, value]) => value !== '')
-            .map(([key, value]) => [key, parseFloat(value)]);
-
-        if (known.length !== 3) {
-            kinematicsResultsContent.innerHTML = '<div class="error-message">Please provide exactly 3 known variables to solve.</div>';
-            kinematicsResults.classList.remove('hidden');
-            return;
-        }
-
-        const values = {
-            u: isNaN(parseFloat(inputs.u)) ? null : parseFloat(inputs.u),
-            v: isNaN(parseFloat(inputs.v)) ? null : parseFloat(inputs.v),
-            a: isNaN(parseFloat(inputs.a)) ? null : parseFloat(inputs.a),
-            s: isNaN(parseFloat(inputs.s)) ? null : parseFloat(inputs.s),
-            t: isNaN(parseFloat(inputs.t)) ? null : parseFloat(inputs.t)
-        };
-
-        // Find missing variable
-        const missing = Object.entries(values).find(([k, v]) => v === null);
-        if (!missing) {
-            kinematicsResultsContent.innerHTML = '<div class="error-message">Please provide exactly 3 known variables.</div>';
-            kinematicsResults.classList.remove('hidden');
-            return;
-        }
-
-        const missingVar = missing[0];
-        let html = '<div class="result-item"><div class="result-item-label">Step-by-Step Solution</div>';
+    // Cramer's Rule Matrix Solver Engine Layout Loop-free Execution
+    document.getElementById("btn-solve-simultaneous").addEventListener("click", () => {
+        const mode = document.querySelector('input[name="sim-mode"]:checked').value;
+        const outBox = document.getElementById("simultaneous-result-box");
+        outBox.innerHTML = "";
 
         try {
-            // Missing s: Use v = u + at
-            if (missingVar === 's') {
-                if (values.u !== null && values.v !== null && values.a !== null) {
-                    html += `<div class="result-item-value">Using v = u + at → ${values.v} = ${values.u} + ${values.a} × t<br>`;
-                    values.t = (values.v - values.u) / values.a;
-                    html += `t = ${values.t.toFixed(8)} s<br>`;
-                    values.s = values.u * values.t + 0.5 * values.a * values.t * values.t;
-                    html += `Using s = ut + ½at² → s = ${values.s.toFixed(8)} m</div></div>`;
-                }
-            }
-            // Missing v: Use s = ut + 1/2 at^2
-            else if (missingVar === 'v') {
-                if (values.u !== null && values.a !== null && values.t !== null) {
-                    html += `<div class="result-item-value">Using s = ut + ½at² → ${values.s} = ${values.u} × ${values.t} + 0.5 × ${values.a} × ${values.t}²<br>`;
-                    values.v = values.u + values.a * values.t;
-                    html += `Using v = u + at → v = ${values.v.toFixed(8)} m/s</div></div>`;
-                } else if (values.u !== null && values.a !== null && values.s !== null) {
-                    html += `<div class="result-item-value">Using v² = u² + 2as → v² = ${values.u}² + 2 × ${values.a} × ${values.s}<br>`;
-                    const vSquared = values.u * values.u + 2 * values.a * values.s;
-                    if (vSquared < 0) {
-                        kinematicsResultsContent.innerHTML = '<div class="error-message">Physically impossible constraints: v² < 0</div>';
-                        kinematicsResults.classList.remove('hidden');
-                        return;
-                    }
-                    values.v = Math.sqrt(vSquared);
-                    html += `v = ${values.v.toFixed(8)} m/s<br>`;
-                    values.t = (values.v - values.u) / values.a;
-                    html += `Using v = u + at → t = ${values.t.toFixed(8)} s</div></div>`;
-                }
-            }
-            // Missing t: Use v² = u² + 2as
-            else if (missingVar === 't') {
-                if (values.u !== null && values.v !== null && values.a !== null) {
-                    html += `<div class="result-item-value">Using v² = u² + 2as → ${values.v}² = ${values.u}² + 2 × ${values.a} × s<br>`;
-                    values.s = (values.v * values.v - values.u * values.u) / (2 * values.a);
-                    html += `s = ${values.s.toFixed(8)} m<br>`;
-                    values.t = (values.v - values.u) / values.a;
-                    html += `Using v = u + at → t = ${values.t.toFixed(8)} s</div></div>`;
-                } else if (values.u !== null && values.v !== null && values.s !== null) {
-                    html += `<div class="result-item-value">Using v² = u² + 2as → a = (v² - u²) / 2s<br>`;
-                    values.a = (values.v * values.v - values.u * values.u) / (2 * values.s);
-                    html += `a = ${values.a.toFixed(8)} m/s²<br>`;
-                    values.t = (values.v - values.u) / values.a;
-                    html += `Using v = u + at → t = ${values.t.toFixed(8)} s</div></div>`;
-                }
-            }
-            // Missing a: Use s = ((u + v) / 2) * t
-            else if (missingVar === 'a') {
-                if (values.u !== null && values.v !== null && values.t !== null) {
-                    html += `<div class="result-item-value">Using s = ((u + v) / 2) × t<br>`;
-                    values.s = ((values.u + values.v) / 2) * values.t;
-                    html += `s = ${values.s.toFixed(8)} m<br>`;
-                    values.a = (values.v - values.u) / values.t;
-                    html += `Using a = (v - u) / t → a = ${values.a.toFixed(8)} m/s²</div></div>`;
-                }
-            }
-            // Missing u: Use s = vt - 1/2 at^2
-            else if (missingVar === 'u') {
-                if (values.v !== null && values.a !== null && values.t !== null) {
-                    html += `<div class="result-item-value">Using s = vt - ½at² → s = ${values.v} × ${values.t} - 0.5 × ${values.a} × ${values.t}²<br>`;
-                    values.s = values.v * values.t - 0.5 * values.a * values.t * values.t;
-                    html += `s = ${values.s.toFixed(8)} m<br>`;
-                    values.u = values.v - values.a * values.t;
-                    html += `Using u = v - at → u = ${values.u.toFixed(8)} m/s</div></div>`;
-                }
-            }
+            if (mode === "2var") {
+                const a1 = parseFloat(document.getElementById("eq2-a1").value);
+                const b1 = parseFloat(document.getElementById("eq2-b1").value);
+                const c1 = parseFloat(document.getElementById("eq2-c1").value);
+                const a2 = parseFloat(document.getElementById("eq2-a2").value);
+                const b2 = parseFloat(document.getElementById("eq2-b2").value);
+                const c2 = parseFloat(document.getElementById("eq2-c2").value);
 
-            html += '<div class="result-item"><div class="result-item-label">Final Values</div><div class="result-item-value">';
-            html += `u (Initial Velocity) = ${values.u.toFixed(8)} m/s<br>`;
-            html += `v (Final Velocity) = ${values.v.toFixed(8)} m/s<br>`;
-            html += `a (Acceleration) = ${values.a.toFixed(8)} m/s²<br>`;
-            html += `s (Displacement) = ${values.s.toFixed(8)} m<br>`;
-            html += `t (Time) = ${values.t.toFixed(8)} s`;
-            html += '</div></div>';
+                if ([a1, b1, c1, a2, b2, c2].some(isNaN)) throw new Error("Fill up all 2-variable inputs matrix inputs.");
 
-            kinematicsResultsContent.innerHTML = html;
-        } catch (e) {
-            kinematicsResultsContent.innerHTML = '<div class="error-message">Error in calculation. Please check your inputs.</div>';
+                // Determinant Calculations 
+                const D = (a1 * b2) - (b1 * a2);
+                if (D === 0) throw new Error("System has no unique solution (Main Determinant D = 0).");
+
+                const Dx = (c1 * b2) - (b1 * c2);
+                const Dy = (a1 * c2) - (c1 * a2);
+
+                outBox.innerHTML = `<h4>System Roots:</h4>
+                                    <p class="highlight-text">x = ${(Dx / D).toFixed(4)}</p>
+                                    <p class="highlight-text">y = ${(Dy / D).toFixed(4)}</p>`;
+            } else {
+                // 3 Variable Matrix Cramer computation parsing arrays
+                const a1 = parseFloat(document.getElementById("eq3-a1").value);
+                const b1 = parseFloat(document.getElementById("eq3-b1").value);
+                const c1 = parseFloat(document.getElementById("eq3-c1").value);
+                const d1 = parseFloat(document.getElementById("eq3-d1").value);
+
+                const a2 = parseFloat(document.getElementById("eq3-a2").value);
+                const b2 = parseFloat(document.getElementById("eq3-b2").value);
+                const c2 = parseFloat(document.getElementById("eq3-c2").value);
+                const d2 = parseFloat(document.getElementById("eq3-d2").value);
+
+                const a3 = parseFloat(document.getElementById("eq3-a3").value);
+                const b3 = parseFloat(document.getElementById("eq3-b3").value);
+                const c3 = parseFloat(document.getElementById("eq3-c3").value);
+                const d3 = parseFloat(document.getElementById("eq3-d3").value);
+
+                if ([a1,b1,c1,d1,a2,b2,c2,d2,a3,b3,c3,d3].some(isNaN)) throw new Error("Fill up all 3-variable inputs matrix elements.");
+
+                // 3x3 Determinant Expansion Formula mapping logic
+                const det3x3 = (ma, mb, mc, na, nb, nc, pa, pb, pc) => {
+                    return ma * (nb * pc - nc * pb) - mb * (na * pc - nc * pa) + mc * (na * pb - nb * pa);
+                };
+
+                const D = det3x3(a1, b1, c1, a2, b2, c2, a3, b3, c3);
+                if (D === 0) throw new Error("System has no unique solution (Main Matrix Determinant D = 0).");
+
+                const Dx = det3x3(d1, b1, c1, d2, b2, c2, d3, b3, c3);
+                const Dy = det3x3(a1, d1, c1, a2, d2, c2, a3, d3, c3);
+                const Dz = det3x3(a1, b1, d1, a2, b2, d2, a3, b3, d3);
+
+                outBox.innerHTML = `<h4>System Roots:</h4>
+                                    <p class="highlight-text">x = ${(Dx / D).toFixed(4)}</p>
+                                    <p class="highlight-text">y = ${(Dy / D).toFixed(4)}</p>
+                                    <p class="highlight-text">z = ${(Dz / D).toFixed(4)}</p>`;
+            }
+            outBox.classList.remove("hidden");
+        } catch (err) {
+            outBox.innerHTML = `<span class="error-message">Error: ${err.message}</span>`;
+            outBox.classList.remove("hidden");
+        }
+    });
+
+
+    // --- PHYSICS KINEMATICS ENGINE ---
+
+    document.getElementById("btn-solve-kinematics").addEventListener("click", () => {
+        const outBox = document.getElementById("kinematics-result-box");
+        outBox.innerHTML = "";
+
+        const inputElements = [
+            { id: 'u', val: parseFloat(document.getElementById("kin-u").value) },
+            { id: 'v', val: parseFloat(document.getElementById("kin-v").value) },
+            { id: 'a', val: parseFloat(document.getElementById("kin-a").value) },
+            { id: 's', val: parseFloat(document.getElementById("kin-s").value) },
+            { id: 't', val: parseFloat(document.getElementById("kin-t").value) }
+        ];
+
+        // Gather metrics containing real numerical items
+        const knowns = inputElements.filter(item => !isNaN(item.val));
+        
+        if (knowns.length !== 3) {
+            outBox.innerHTML = `<span class="error-message">Error: You provided ${knowns.length} parameters. Please specify exactly 3 variables to uniquely calculate motion outputs.</span>`;
+            outBox.classList.remove("hidden");
+            return;
         }
 
-        kinematicsResults.classList.remove('hidden');
-    });
+        // Map data references array into an query-ready dictionary lookup
+        const k = {};
+        knowns.forEach(item => k[item.id] = item.val);
 
-    // ==================== MODULE NAVIGATION ==================== 
+        try {
+            // Target missing parameters variables mapped linearly using direct evaluation branches
+            if (k.s === undefined) {
+                // Path 1: Missing 's' -> compute using standard linear acceleration bounds
+                k.s = k.t !== undefined ? (k.u !== undefined ? (k.u * k.t + 0.5 * k.a * k.t * k.t) : (k.v * k.t - 0.5 * k.a * k.t * k.t)) : ((k.v * k.v - k.u * k.u) / (2 * k.a));
+            }
+            if (k.v === undefined) {
+                // Path 2: Missing 'v'
+                if (k.t !== undefined) k.v = k.u + k.a * k.t;
+                else {
+                    const vSq = (k.u * k.u) + (2 * k.a * k.s);
+                    if (vSq < 0) throw new Error("Imaginary roots encountered. Constraints are physically impossible.");
+                    k.v = Math.sqrt(vSq);
+                }
+            }
+            if (k.t === undefined) {
+                // Path 3: Missing 't'
+                if (k.a !== 0) k.t = (k.v - k.u) / k.a;
+                else k.t = k.s / k.u;
+            }
+            if (k.a === undefined) {
+                // Path 4: Missing 'a'
+                k.a = (k.v - k.u) / k.t;
+            }
+            if (k.u === undefined) {
+                // Path 5: Missing 'u'
+                k.u = k.v - k.a * k.t;
+            }
 
-    const navBtns = document.querySelectorAll('.nav-btn');
-    const modules = document.querySelectorAll('.module');
+            // Run structural range boundaries validity sweep
+            if (k.t < 0) throw new Error("Computed result yielded an impossible negative time scale framework.");
 
-    navBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const moduleId = btn.dataset.module;
-            
-            navBtns.forEach(b => b.classList.remove('active'));
-            modules.forEach(m => m.classList.remove('active'));
+            outBox.innerHTML = `
+                <h4>Motion State Solution Array:</h4>
+                <div class="form-grid-kinematics">
+                    <div class="step-card">Initial Velocity (u):<br><strong>${k.u.toFixed(3)} m/s</strong></div>
+                    <div class="step-card">Final Velocity (v):<br><strong>${k.v.toFixed(3)} m/s</strong></div>
+                    <div class="step-card">Acceleration (a):<br><strong>${k.a.toFixed(3)} m/s²</strong></div>
+                    <div class="step-card">Displacement (s):<br><strong>${k.s.toFixed(3)} m</strong></div>
+                    <div class="step-card">Time Interval (t):<br><strong>${k.t.toFixed(3)} s</strong></div>
+                </div>
+            `;
+            outBox.classList.remove("hidden");
 
-            btn.classList.add('active');
-            document.getElementById(moduleId).classList.add('active');
-        });
-    });
-
-    // ==================== SUB-TAB NAVIGATION ==================== 
-
-    const subTabBtns = document.querySelectorAll('.sub-tab-btn');
-    subTabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const subtabId = btn.dataset.subtab;
-            const parentModule = btn.closest('.module-header').parentElement;
-            
-            const subTabs = parentModule.querySelectorAll('.sub-tab-content');
-            const buttons = parentModule.querySelectorAll('.sub-tab-btn');
-
-            buttons.forEach(b => b.classList.remove('active'));
-            subTabs.forEach(tab => tab.classList.remove('active'));
-
-            btn.classList.add('active');
-            document.getElementById(subtabId).classList.add('active');
-        });
+        } catch (err) {
+            outBox.innerHTML = `<span class="error-message">Calculation Refused: ${err.message}</span>`;
+            outBox.classList.remove("hidden");
+        }
     });
 
 });
