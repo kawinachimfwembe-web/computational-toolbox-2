@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,210 +7,188 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Navigation Bar -->
-    <nav class="navbar">
-        <div class="navbar-container">
-            <div class="navbar-brand">
-                <h1>⚗️ Computational Toolbox</h1>
-            </div>
-            <ul class="nav-menu">
-                <li><button class="nav-btn active" data-module="chemistry">Chemistry</button></li>
-                <li><button class="nav-btn" data-module="mathematics">Mathematics</button></li>
-                <li><button class="nav-btn" data-module="kinematics">Kinematics</button></li>
-            </ul>
-        </div>
-    </nav>
 
-    <!-- Main Container -->
-    <div class="container">
+    <div class="app-container">
+        <header class="app-header">
+            <h1>Computational Toolbox</h1>
+            <p>Advanced Academic Calculator Engine</p>
+        </header>
 
-        <!-- ==================== CHEMISTRY MODULE ==================== -->
-        <section id="chemistry" class="module active">
-            <div class="module-header">
-                <h2>Chemistry & Stoichiometry</h2>
-                <div class="sub-tabs">
-                    <button class="sub-tab-btn active" data-subtab="equation-balancer">Equation Balancer</button>
-                    <button class="sub-tab-btn" data-subtab="limiting-reactant">Limiting Reactant Finder</button>
+        <nav class="main-nav">
+            <button class="nav-btn active" data-tab="chemistry-module">🧪 Chemistry</button>
+            <button class="nav-btn" data-tab="mathematics-module">🧮 Mathematics</button>
+            <button class="nav-btn" data-tab="physics-module">⚡ Physics</button>
+        </nav>
+
+        <main class="module-content">
+            
+            <section id="chemistry-module" class="module-card">
+                <div class="sub-nav">
+                    <button class="sub-nav-btn active" data-subtab="chem-balancer">Balancer & Solver</button>
+                    <button class="sub-nav-btn" data-subtab="chem-limiting">Limiting Reactant (AMR/RMR)</button>
                 </div>
-            </div>
 
-            <!-- Equation Balancer Sub-Tab -->
-            <div id="equation-balancer" class="sub-tab-content active">
-                <div class="card">
+                <div id="chem-balancer" class="sub-tab-content">
                     <h3>Equation Balancer & Variable Solver</h3>
                     <div class="form-group">
-                        <label for="unbalanced-equation">Unbalanced Equation (e.g., Fe + Cl2 -> FeCl3):</label>
-                        <input type="text" id="unbalanced-equation" placeholder="Enter unbalanced equation" class="input-field">
+                        <label for="input-equation">Enter Unbalanced Equation (e.g., Fe + Cl2 -> FeCl3):</label>
+                        <input type="text" id="input-equation" placeholder="Fe + Cl2 -> FeCl3">
                     </div>
-                    <button id="balance-equation-btn" class="btn btn-primary">Balance Equation</button>
+                    <button id="btn-balance" class="action-btn">Balance Equation</button>
                     
-                    <div id="balanced-result" class="result-card hidden">
+                    <div id="balance-result-box" class="result-box hidden">
                         <h4>Balanced Equation:</h4>
-                        <p id="balanced-equation-output" class="equation-output"></p>
-                    </div>
-
-                    <div id="mass-calculator" class="hidden">
-                        <h4>Calculate Masses from Known Component</h4>
-                        <div class="form-group">
-                            <label for="compound-selector">Select Component:</label>
-                            <select id="compound-selector" class="input-field">
-                                <option value="">-- Select --</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label for="known-mass">Known Mass (grams):</label>
-                            <input type="number" id="known-mass" placeholder="Enter mass" class="input-field" step="0.001">
-                        </div>
-                        <button id="calculate-masses-btn" class="btn btn-secondary">Calculate Masses</button>
+                        <p id="output-balanced-eq" class="highlight-text"></p>
                         
-                        <div id="mass-results" class="result-card hidden">
-                            <h4>Stoichiometric Results:</h4>
-                            <div id="mass-results-content"></div>
+                        <div class="stoich-solver-zone">
+                            <h5>Stochiometric Variable Solver</h5>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="select-known-chem">Choose Known Substance:</label>
+                                    <select id="select-known-chem"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="input-known-mass">Input Mass (grams):</label>
+                                    <input type="number" id="input-known-mass" step="any" placeholder="e.g., 2.8">
+                                </div>
+                            </div>
+                            <button id="btn-solve-stoich" class="action-btn secondary">Calculate Yields & RTP Volumes</button>
+                            <div id="stoich-steps-output" class="dynamic-output-list"></div>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Limiting Reactant Finder Sub-Tab -->
-            <div id="limiting-reactant" class="sub-tab-content hidden">
-                <div class="card">
+                <div id="chem-limiting" class="sub-tab-content hidden">
                     <h3>Limiting & Excess Reactant Finder</h3>
                     <div class="form-group">
-                        <label for="reactant-equation">Balanced Reaction (e.g., 2Mg + O2 -> 2MgO):</label>
-                        <input type="text" id="reactant-equation" placeholder="Enter balanced equation" class="input-field">
+                        <label for="input-limiting-eq">Enter Balanced Reaction (e.g., 2Mg + O2 -> 2MgO):</label>
+                        <input type="text" id="input-limiting-eq" placeholder="2Mg + O2 -> 2MgO">
                     </div>
-                    
-                    <div id="reactant-inputs" class="hidden">
-                        <h4>Enter Starting Masses</h4>
-                        <div id="reactant-mass-inputs"></div>
-                        <button id="find-limiting-btn" class="btn btn-primary">Find Limiting Reactant</button>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label id="lbl-reactant-a" for="input-mass-a">Mass of First Reactant (g):</label>
+                            <input type="number" id="input-mass-a" step="any" placeholder="Mass">
+                        </div>
+                        <div class="form-group">
+                            <label id="lbl-reactant-b" for="input-mass-b">Mass of Second Reactant (g):</label>
+                            <input type="number" id="input-mass-b" step="any" placeholder="Mass">
+                        </div>
                     </div>
-
-                    <button id="parse-reactant-eq-btn" class="btn btn-secondary">Parse Equation</button>
-
-                    <div id="limiting-results" class="result-card hidden">
-                        <h4>Analysis Results:</h4>
-                        <div id="limiting-results-content"></div>
-                    </div>
+                    <button id="btn-find-limiting" class="action-btn">Determine Limiting Reactant</button>
+                    <div id="limiting-result-box" class="result-box hidden"></div>
                 </div>
-            </div>
-        </section>
+            </section>
 
-        <!-- ==================== MATHEMATICS MODULE ==================== -->
-        <section id="mathematics" class="module hidden">
-            <div class="module-header">
-                <h2>Mathematics Solvers</h2>
-                <div class="sub-tabs">
-                    <button class="sub-tab-btn active" data-subtab="quadratic">Quadratic Equation</button>
-                    <button class="sub-tab-btn" data-subtab="simultaneous">Simultaneous Equations</button>
+            <section id="mathematics-module" class="module-card hidden">
+                <div class="sub-nav">
+                    <button class="sub-nav-btn active" data-subtab="math-quadratic">Quadratic Solver</button>
+                    <button class="sub-nav-btn" data-subtab="math-simultaneous">Simultaneous Systems</button>
                 </div>
-            </div>
 
-            <!-- Quadratic Equation Sub-Tab -->
-            <div id="quadratic" class="sub-tab-content active">
-                <div class="card">
-                    <h3>Quadratic Equation Solver</h3>
-                    <p class="subtitle">Solve: ax² + bx + c = 0</p>
-                    
-                    <div class="form-group">
-                        <label for="quad-a">Coefficient a:</label>
-                        <input type="number" id="quad-a" placeholder="Enter a" class="input-field" step="0.001">
+                <div id="math-quadratic" class="sub-tab-content">
+                    <h3>Quadratic Equation Solver ($ax^2 + bx + c = 0$)</h3>
+                    <div class="form-row-three">
+                        <div class="form-group">
+                            <label for="quad-a">Coefficient a:</label>
+                            <input type="number" id="quad-a" step="any" placeholder="a">
+                        </div>
+                        <div class="form-group">
+                            <label for="quad-b">Coefficient b:</label>
+                            <input type="number" id="quad-b" step="any" placeholder="b">
+                        </div>
+                        <div class="form-group">
+                            <label for="quad-c">Coefficient c:</label>
+                            <input type="number" id="quad-c" step="any" placeholder="c">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="quad-b">Coefficient b:</label>
-                        <input type="number" id="quad-b" placeholder="Enter b" class="input-field" step="0.001">
-                    </div>
-                    <div class="form-group">
-                        <label for="quad-c">Coefficient c:</label>
-                        <input type="number" id="quad-c" placeholder="Enter c" class="input-field" step="0.001">
-                    </div>
-
-                    <button id="solve-quadratic-btn" class="btn btn-primary">Solve Quadratic</button>
-
-                    <div id="quadratic-results" class="result-card hidden">
-                        <h4>Solutions:</h4>
-                        <div id="quadratic-results-content"></div>
-                    </div>
+                    <button id="btn-solve-quadratic" class="action-btn">Solve Roots</button>
+                    <div id="quadratic-result-box" class="result-box hidden"></div>
                 </div>
-            </div>
 
-            <!-- Simultaneous Equations Sub-Tab -->
-            <div id="simultaneous" class="sub-tab-content hidden">
-                <div class="card">
-                    <h3>Simultaneous Linear Equations Solver</h3>
-                    
-                    <div class="form-group">
-                        <label>Number of Variables:</label>
-                        <div class="radio-group">
-                            <label>
-                                <input type="radio" name="eq-variables" value="2" checked> 2 Variables
-                            </label>
-                            <label>
-                                <input type="radio" name="eq-variables" value="3"> 3 Variables
-                            </label>
+                <div id="math-simultaneous" class="sub-tab-content hidden">
+                    <h3>Simultaneous Linear Equations</h3>
+                    <div class="system-selector">
+                        <label><input type="radio" name="sim-mode" value="2var" checked> 2 Variables (x, y)</label>
+                        <label><input type="radio" name="sim-mode" value="3var"> 3 Variables (x, y, z)</label>
+                    </div>
+
+                    <div id="inputs-2var" class="matrix-input-container">
+                        <p>Equation 1: ax + by = c</p>
+                        <div class="form-row-three">
+                            <input type="number" id="eq2-a1" placeholder="a1">
+                            <input type="number" id="eq2-b1" placeholder="b1">
+                            <input type="number" id="eq2-c1" placeholder="c1">
+                        </div>
+                        <p>Equation 2: ax + by = c</p>
+                        <div class="form-row-three">
+                            <input type="number" id="eq2-a2" placeholder="a2">
+                            <input type="number" id="eq2-b2" placeholder="b2">
+                            <input type="number" id="eq2-c2" placeholder="c2">
                         </div>
                     </div>
 
-                    <div id="equations-container"></div>
+                    <div id="inputs-3var" class="matrix-input-container hidden">
+                        <p>Equation 1: ax + by + cz = d</p>
+                        <div class="form-grid-four">
+                            <input type="number" id="eq3-a1" placeholder="a1">
+                            <input type="number" id="eq3-b1" placeholder="b1">
+                            <input type="number" id="eq3-c1" placeholder="c1">
+                            <input type="number" id="eq3-d1" placeholder="d1">
+                        </div>
+                        <p>Equation 2: ax + by + cz = d</p>
+                        <div class="form-grid-four">
+                            <input type="number" id="eq3-a2" placeholder="a2">
+                            <input type="number" id="eq3-b2" placeholder="b2">
+                            <input type="number" id="eq3-c2" placeholder="c2">
+                            <input type="number" id="eq3-d2" placeholder="d2">
+                        </div>
+                        <p>Equation 3: ax + by + cz = d</p>
+                        <div class="form-grid-four">
+                            <input type="number" id="eq3-a3" placeholder="a3">
+                            <input type="number" id="eq3-b3" placeholder="b3">
+                            <input type="number" id="eq3-c3" placeholder="c3">
+                            <input type="number" id="eq3-d3" placeholder="d3">
+                        </div>
+                    </div>
 
-                    <button id="solve-simultaneous-btn" class="btn btn-primary">Solve System</button>
+                    <button id="btn-solve-simultaneous" class="action-btn">Solve Matrix via Cramer's Rule</button>
+                    <div id="simultaneous-result-box" class="result-box hidden"></div>
+                </div>
+            </section>
 
-                    <div id="simultaneous-results" class="result-card hidden">
-                        <h4>Solution:</h4>
-                        <div id="simultaneous-results-content"></div>
+            <section id="physics-module" class="module-card hidden">
+                <h3>Linear Motion Kinematics Engine</h3>
+                <p class="instruction-note">Provide <strong>exactly 3</strong> values. Leave the other 2 blank to solve for them automatically.</p>
+                
+                <div class="form-grid-kinematics">
+                    <div class="form-group">
+                        <label for="kin-u">Initial Velocity (u) [m/s]:</label>
+                        <input type="number" id="kin-u" step="any" placeholder="u">
+                    </div>
+                    <div class="form-group">
+                        <label for="kin-v">Final Velocity (v) [m/s]:</label>
+                        <input type="number" id="kin-v" step="any" placeholder="v">
+                    </div>
+                    <div class="form-group">
+                        <label for="kin-a">Acceleration (a) [m/s²]:</label>
+                        <input type="number" id="kin-a" step="any" placeholder="a">
+                    </div>
+                    <div class="form-group">
+                        <label for="kin-s">Displacement (s) [m]:</label>
+                        <input type="number" id="kin-s" step="any" placeholder="s">
+                    </div>
+                    <div class="form-group">
+                        <label for="kin-t">Time Interval (t) [s]:</label>
+                        <input type="number" id="kin-t" step="any" placeholder="t">
                     </div>
                 </div>
-            </div>
-        </section>
 
-        <!-- ==================== KINEMATICS MODULE ==================== -->
-        <section id="kinematics" class="module hidden">
-            <div class="module-header">
-                <h2>Kinematics Solver</h2>
-            </div>
+                <button id="btn-solve-kinematics" class="action-btn">Solve Motion Parameters</button>
+                <div id="kinematics-result-box" class="result-box hidden"></div>
+            </section>
 
-            <div class="card">
-                <h3>Kinematic Equations Solver</h3>
-                <p class="subtitle">Provide exactly 3 known variables out of the 5</p>
-
-                <div class="kinematics-grid">
-                    <div class="form-group">
-                        <label for="kin-u">Initial Velocity u (m/s):</label>
-                        <input type="number" id="kin-u" placeholder="u" class="input-field" step="0.001">
-                    </div>
-                    <div class="form-group">
-                        <label for="kin-v">Final Velocity v (m/s):</label>
-                        <input type="number" id="kin-v" placeholder="v" class="input-field" step="0.001">
-                    </div>
-                    <div class="form-group">
-                        <label for="kin-a">Acceleration a (m/s²):</label>
-                        <input type="number" id="kin-a" placeholder="a" class="input-field" step="0.001">
-                    </div>
-                    <div class="form-group">
-                        <label for="kin-s">Displacement s (m):</label>
-                        <input type="number" id="kin-s" placeholder="s" class="input-field" step="0.001">
-                    </div>
-                    <div class="form-group">
-                        <label for="kin-t">Time t (s):</label>
-                        <input type="number" id="kin-t" placeholder="t" class="input-field" step="0.001">
-                    </div>
-                </div>
-
-                <button id="solve-kinematics-btn" class="btn btn-primary">Solve Kinematics</button>
-
-                <div id="kinematics-results" class="result-card hidden">
-                    <h4>Solution:</h4>
-                    <div id="kinematics-results-content"></div>
-                </div>
-            </div>
-        </section>
-
+        </main>
     </div>
-
-    <!-- Footer -->
-    <footer class="footer">
-        <p>&copy; 2025 Computational Toolbox. All calculations performed client-side.</p>
-    </footer>
 
     <script src="script.js"></script>
 </body>
