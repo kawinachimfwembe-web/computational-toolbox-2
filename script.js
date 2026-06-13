@@ -1,3 +1,4 @@
+
 document.addEventListener('DOMContentLoaded', () => {
 
     // ==================== PERIODIC TABLE DATA ==================== 
@@ -18,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
         Pb: 207.2, Bi: 208.980, Th: 232.038, Pa: 231.036, U: 238.029
     };
 
-    const molarVolumeRTP = 24.0;
+    const molarVolumeRTP = 24.0; // dm³/mol at RTP
     const gasCompounds = ['H2', 'O2', 'N2', 'Cl2', 'F2', 'Br2', 'I2', 'CO2', 'NH3', 'HCl', 'SO2', 'NO', 'NO2', 'N2O', 'CH4', 'C2H6', 'C3H8'];
 
     // ==================== UTILITY FUNCTIONS ==================== 
@@ -71,12 +72,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const { reactants, products } = parsed;
         const allCompounds = [...reactants.map(r => r.compound), ...products.map(p => p.compound)];
         
+        // Attempt simple balancing for common reactions
         let coeffs = Array(reactants.length + products.length).fill(1);
         
+        // Simple algorithm: use LCM approach for straightforward reactions
         try {
+            // For educational purposes, we'll implement a working solution for common reactions
             const reactantFormulas = reactants.map(r => parseChemicalFormula(r.compound));
             const productFormulas = products.map(p => parseChemicalFormula(p.compound));
             
+            // Check if it's already balanced
             const isBalanced = (coeffs) => {
                 const elementCounts = {};
                 reactants.forEach((r, i) => {
@@ -96,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 return balanced;
             };
 
+            // Try common coefficient combinations up to 10
             const tryCoefficients = () => {
                 const maxCoeff = 10;
                 for (let c1 = 1; c1 <= maxCoeff; c1++) {
@@ -135,6 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ==================== CHEMISTRY MODULE ==================== 
 
+    // Equation Balancer
     const balanceEquationBtn = document.getElementById('balance-equation-btn');
     const unbalancedInput = document.getElementById('unbalanced-equation');
     const balancedOutput = document.getElementById('balanced-equation-output');
@@ -165,6 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
         balancedResult.classList.remove('hidden');
         massCalculator.classList.remove('hidden');
 
+        // Populate compound selector
         compoundSelector.innerHTML = '<option value="">-- Select --</option>';
         const allCompounds = [...result.reactants, ...result.products].map(c => c.compound);
         allCompounds.forEach(compound => {
@@ -235,6 +243,7 @@ document.addEventListener('DOMContentLoaded', () => {
         massResults.classList.remove('hidden');
     });
 
+    // Limiting Reactant Finder
     const parseReactantEqBtn = document.getElementById('parse-reactant-eq-btn');
     const reactantEquationInput = document.getElementById('reactant-equation');
     const reactantInputsDiv = document.getElementById('reactant-inputs');
@@ -295,6 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const { reactants } = limitingEquationData;
         const reactantCoeffs = reactants.map(r => r.coeff);
         
+        // Parse coefficients from equation string
         const coefficients = [];
         reactants.forEach((r, i) => {
             const regex = /^(\d+)?/;
@@ -311,6 +321,7 @@ document.addEventListener('DOMContentLoaded', () => {
             moles[r.compound] = masses[r.compound] / molarMasses[r.compound];
         });
 
+        // Calculate RMR (Required Molar Ratio) from coefficients
         const parseCoefficients = (equation) => {
             const coeffs = [];
             const parts = equation.split('->')[0].split('+');
@@ -339,8 +350,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <strong>Required Molar Ratio (RMR):</strong> ${RMR.join(' : ')}<br>
             <strong>Available Moles:</strong> ${reactants.map(r => `${r.compound}: ${moles[r.compound].toFixed(6)} mol`).join(' | ')}<br>
             <strong>Limiting Reactant:</strong> <span style="color: #ff9090;">${limitingReactant}</span><br>
-        </div></div>`;
+        </div></div>';
 
+        // Calculate excess
         reactants.forEach((r, i) => {
             if (r.compound !== limitingReactant) {
                 const limitingMoles = moles[limitingReactant];
@@ -359,6 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ==================== MATHEMATICS MODULE ==================== 
 
+    // Quadratic Equation Solver
     const quadAInput = document.getElementById('quad-a');
     const quadBInput = document.getElementById('quad-b');
     const quadCInput = document.getElementById('quad-c');
@@ -415,6 +428,7 @@ document.addEventListener('DOMContentLoaded', () => {
         quadraticResults.classList.remove('hidden');
     });
 
+    // Simultaneous Equations
     const equationVariablesRadios = document.querySelectorAll('input[name="eq-variables"]');
     const equationsContainer = document.getElementById('equations-container');
     const solveSimultaneousBtn = document.getElementById('solve-simultaneous-btn');
@@ -603,6 +617,7 @@ document.addEventListener('DOMContentLoaded', () => {
             t: isNaN(parseFloat(inputs.t)) ? null : parseFloat(inputs.t)
         };
 
+        // Find missing variable
         const missing = Object.entries(values).find(([k, v]) => v === null);
         if (!missing) {
             kinematicsResultsContent.innerHTML = '<div class="error-message">Please provide exactly 3 known variables.</div>';
@@ -614,6 +629,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = '<div class="result-item"><div class="result-item-label">Step-by-Step Solution</div>';
 
         try {
+            // Missing s: Use v = u + at
             if (missingVar === 's') {
                 if (values.u !== null && values.v !== null && values.a !== null) {
                     html += `<div class="result-item-value">Using v = u + at → ${values.v} = ${values.u} + ${values.a} × t<br>`;
@@ -623,6 +639,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     html += `Using s = ut + ½at² → s = ${values.s.toFixed(8)} m</div></div>`;
                 }
             }
+            // Missing v: Use s = ut + 1/2 at^2
             else if (missingVar === 'v') {
                 if (values.u !== null && values.a !== null && values.t !== null) {
                     html += `<div class="result-item-value">Using s = ut + ½at² → ${values.s} = ${values.u} × ${values.t} + 0.5 × ${values.a} × ${values.t}²<br>`;
@@ -642,6 +659,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     html += `Using v = u + at → t = ${values.t.toFixed(8)} s</div></div>`;
                 }
             }
+            // Missing t: Use v² = u² + 2as
             else if (missingVar === 't') {
                 if (values.u !== null && values.v !== null && values.a !== null) {
                     html += `<div class="result-item-value">Using v² = u² + 2as → ${values.v}² = ${values.u}² + 2 × ${values.a} × s<br>`;
@@ -657,6 +675,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     html += `Using v = u + at → t = ${values.t.toFixed(8)} s</div></div>`;
                 }
             }
+            // Missing a: Use s = ((u + v) / 2) * t
             else if (missingVar === 'a') {
                 if (values.u !== null && values.v !== null && values.t !== null) {
                     html += `<div class="result-item-value">Using s = ((u + v) / 2) × t<br>`;
@@ -666,6 +685,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     html += `Using a = (v - u) / t → a = ${values.a.toFixed(8)} m/s²</div></div>`;
                 }
             }
+            // Missing u: Use s = vt - 1/2 at^2
             else if (missingVar === 'u') {
                 if (values.v !== null && values.a !== null && values.t !== null) {
                     html += `<div class="result-item-value">Using s = vt - ½at² → s = ${values.v} × ${values.t} - 0.5 × ${values.a} × ${values.t}²<br>`;
