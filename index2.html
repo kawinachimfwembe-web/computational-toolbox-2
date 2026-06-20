@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Computational Toolbox</title>
+    <style>
+        :root {
+            --bg-dark: #0f111a;
+            --card-bg: rgba(22, 28, 45, 0.65);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --neon-blue: #00f2fe;
+            --emerald: #05f19a;
+            --neon-purple: #b5179e;
+            --error-red: #ff4d6d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-image: radial-gradient(circle at 10% 20%, rgba(0, 242, 254, 0.05) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(181, 23, 158, 0.05) 0%, transparent 40%);
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 900px;
+            flex: 1;
+        }
+
+        .app-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .app-header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            background: linear-gradient(to right, var(--neon-blue), var(--emerald));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .app-header p {
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        .main-nav {
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.4rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-btn {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.8rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .nav-btn:hover {
+            color: var(--text-main);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-btn.active {
+            color: var(--bg-dark);
+            background: linear-gradient(to right, var(--neon-blue), var(--emerald));
+            box-shadow: 0 4px 15px rgba(0, 242, 254, 0.3);
+        }
+
+        .sub-nav {
+            display: flex;
+            gap: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+        }
+
+        .sub-nav-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 0.25rem 0.5rem;
+            position: relative;
+        }
+
+        .sub-nav-btn.active {
+            color: var(--neon-blue);
+        }
+
+        .sub-nav-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: -0.6rem;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--neon-blue);
+        }
+
+        .module-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input, select {
+            background: rgba(15, 17, 26, 0.7);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 8px rgba(0, 242, 254, 0.2);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-row-three {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .form-grid-four {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 0.8rem;
+        }
+
+        .form-grid-kinematics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .instruction-note {
+            font-size: 0.9rem;
+            color: var(--neon-blue);
+            margin-bottom: 1.5rem;
+            background: rgba(0, 242, 254, 0.05);
+            padding: 0.6rem 1rem;
+            border-radius: 6px;
+            border-left: 3px solid var(--neon-blue);
+        }
+
+        .action-btn {
+            width: 100%;
+            background: linear-gradient(to right, var(--neon-blue), var(--emerald));
+            border: none;
+            color: var(--bg-dark);
+            padding: 0.9rem;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
+            margin-top: 0.5rem;
+        }
+
+        .action-btn:active {
+            transform: scale(0.99);
+        }
+
+        .action-btn.secondary {
+            background: linear-gradient(to right, var(--neon-purple), #7209b7);
+            color: white;
+            margin-top: 1rem;
+        }
+
+        .result-box {
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px dashed var(--border-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .result-box h4 {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+
+        .highlight-text {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--emerald);
+            letter-spacing: 0.5px;
+        }
+
+        .stoich-solver-zone {
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .dynamic-output-list {
+            margin-top: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .step-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-color);
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
+        }
+
+        .step-header {
+            color: var(--neon-blue);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .system-selector {
+            display: flex;
+            gap: 1.5rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .system-selector label {
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .matrix-input-container p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin: 0.8rem 0 0.4rem 0;
+        }
+
+        .error-message {
+            color: var(--error-red);
+            background: rgba(255, 77, 109, 0.08);
+            border-left: 3px solid var(--error-red);
+            padding: 0.8rem;
+            border-radius: 4px;
+            font-size: 0.95rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* Creator Signature Footer styles */
+        .app-footer {
+            width: 100%;
+            text-align: center;
+            padding: 2rem 0 1rem 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 3rem;
+        }
+
+        .app-footer span {
+            font-weight: 700;
+            background: linear-gradient(to right, var(--neon-blue), var(--emerald));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        @media (max-width: 600px) {
+            .form-row, .form-row-three, .form-grid-four {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header class="app-header">
+            <h1>Computational Toolbox</h1>
+            <p>Advanced Academic Calculator Engine</p>
+        </header>
+
+        <nav class="main-nav">
+            <button class="nav-btn active" data-tab="chemistry-module">🧪 Chemistry</button>
+            <button class="nav-btn" data-tab="mathematics-module">🧮 Mathematics</button>
+            <button class="nav-btn" data-tab="physics-module">⚡ Physics</button>
+        </nav>
+
+        <main class="module-content">
+            
+            <section id="chemistry-module" class="module-card main-tab-panel">
+                <div class="sub-nav">
+                    <button class="sub-nav-btn active" data-subtab="chem-balancer">Balancer & Solver</button>
+                    <button class="sub-nav-btn" data-subtab="chem-limiting">Limiting Reactant (AMR/RMR)</button>
+                </div>
+
+                <div id="chem-balancer" class="sub-tab-content">
+                    <h3>Equation Balancer & Variable Solver</h3>
+                    <div class="form-group">
+                        <label for="input-equation">Enter Unbalanced Equation (e.g., Fe + Cl2 -> FeCl3):</label>
+                        <input type="text" id="input-equation" placeholder="Fe + Cl2 -> FeCl3">
+                    </div>
+                    <button id="btn-balance" class="action-btn">Balance Equation</button>
+                    
+                    <div id="balance-result-box" class="result-box hidden">
+                        <h4>Balanced Equation:</h4>
+                        <p id="output-balanced-eq" class="highlight-text"></p>
+                        
+                        <div class="stoich-solver-zone">
+                            <h5>Stochiometric Variable Solver</h5>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="select-known-chem">Choose Known Substance:</label>
+                                    <select id="select-known-chem"></select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="input-known-mass">Input Mass (grams):</label>
+                                    <input type="number" id="input-known-mass" step="any" placeholder="e.g., 2.8">
+                                </div>
+                            </div>
+                            <button id="btn-solve-stoich" class="action-btn secondary">Calculate Yields & RTP Volumes</button>
+                            <div id="stoich-steps-output" class="dynamic-output-list"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="chem-limiting" class="sub-tab-content hidden">
+                    <h3>Limiting & Excess Reactant Finder</h3>
+                    <div class="form-group">
+                        <label for="input-limiting-eq">Enter Balanced Reaction (e.g., 2Mg + O2 -> 2MgO):</label>
+                        <input type="text" id="input-limiting-eq" placeholder="2Mg + O2 -> 2MgO">
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label id="lbl-reactant-a" for="input-mass-a">Mass of First Reactant (g):</label>
+                            <input type="number" id="input-mass-a" step="any" placeholder="Mass">
+                        </div>
+                        <div class="form-group">
+                            <label id="lbl-reactant-b" for="input-mass-b">Mass of Second Reactant (g):</label>
+                            <input type="number" id="input-mass-b" step="any" placeholder="Mass">
+                        </div>
+                    </div>
+                    <button id="btn-find-limiting" class="action-btn">Determine Limiting Reactant</button>
+                    <div id="limiting-result-box" class="result-box hidden"></div>
+                </div>
+            </section>
+
+            <section id="mathematics-module" class="module-card main-tab-panel hidden">
+                <div class="sub-nav">
+                    <button class="sub-nav-btn active" data-subtab="math-quadratic">Quadratic Solver</button>
+                    <button class="sub-nav-btn" data-subtab="math-simultaneous">Simultaneous Systems</button>
+                </div>
+
+                <div id="math-quadratic" class="sub-tab-content">
+                    <h3>Quadratic Equation Solver (ax² + bx + c = 0)</h3>
+                    <div class="form-row-three">
+                        <div class="form-group">
+                            <label for="quad-a">Coefficient a:</label>
+                            <input type="number" id="quad-a" step="any" placeholder="a">
+                        </div>
+                        <div class="form-group">
+                            <label for="quad-b">Coefficient b:</label>
+                            <input type="number" id="quad-b" step="any" placeholder="b">
+                        </div>
+                        <div class="form-group">
+                            <label for="quad-c">Coefficient c:</label>
+                            <input type="number" id="quad-c" step="any" placeholder="c">
+                        </div>
+                    </div>
+                    <button id="btn-solve-quadratic" class="action-btn">Solve Roots</button>
+                    <div id="quadratic-result-box" class="result-box hidden"></div>
+                </div>
+
+                <div id="math-simultaneous" class="sub-tab-content hidden">
+                    <h3>Simultaneous Linear Equations</h3>
+                    <div class="system-selector">
+                        <label><input type="radio" name="sim-mode" value="2var" checked> 2 Variables (x, y)</label>
+                        <label><input type="radio" name="sim-mode" value="3var"> 3 Variables (x, y, z)</label>
+                    </div>
+
+                    <div id="inputs-2var" class="matrix-input-container">
+                        <p>Equation 1: ax + by = c</p>
+                        <div class="form-row-three">
+                            <input type="number" id="eq2-a1" placeholder="a1">
+                            <input type="number" id="eq2-b1" placeholder="b1">
+                            <input type="number" id="eq2-c1" placeholder="c1">
+                        </div>
+                        <p>Equation 2: ax + by = c</p>
+                        <div class="form-row-three">
+                            <input type="number" id="eq2-a2" placeholder="a2">
+                            <input type="number" id="eq2-b2" placeholder="b2">
+                            <input type="number" id="eq2-c2" placeholder="c2">
+                        </div>
+                    </div>
+
+                    <div id="inputs-3var" class="matrix-input-container hidden">
+                        <p>Equation 1: ax + by + cz = d</p>
+                        <div class="form-grid-four">
+                            <input type="number" id="eq3-a1" placeholder="a1">
+                            <input type="number" id="eq3-b1" placeholder="b1">
+                            <input type="number" id="eq3-c1" placeholder="c1">
+                            <input type="number" id="eq3-d1" placeholder="d1">
+                        </div>
+                        <p>Equation 2: ax + by + cz = d</p>
+                        <div class="form-grid-four">
+                            <input type="number" id="eq3-a2" placeholder="a2">
+                            <input type="number" id="eq3-b2" placeholder="b2">
+                            <input type="number" id="eq3-c2" placeholder="c2">
+                            <input type="number" id="eq3-d2" placeholder="d2">
+                        </div>
+                        <p>Equation 3: ax + by + cz = d</p>
+                        <div class="form-grid-four">
+                            <input type="number" id="eq3-a3" placeholder="a3">
+                            <input type="number" id="eq3-b3" placeholder="b3">
+                            <input type="number" id="eq3-c3" placeholder="c3">
+                            <input type="number" id="eq3-d3" placeholder="d3">
+                        </div>
+                    </div>
+
+                    <button id="btn-solve-simultaneous" class="action-btn">Solve Matrix via Cramer's Rule</button>
+                    <div id="simultaneous-result-box" class="result-box hidden"></div>
+                </div>
+            </section>
+
+            <section id="physics-module" class="module-card main-tab-panel hidden">
+                <h3>Linear Motion Kinematics Engine</h3>
+                <p class="instruction-note">Provide <strong>exactly 3</strong> values. Leave the other 2 blank to solve for them automatically.</p>
+                
+                <div class="form-grid-kinematics">
+                    <div class="form-group">
+                        <label for="kin-u">Initial Velocity (u) [m/s]:</label>
+                        <input type="number" id="kin-u" step="any" placeholder="u">
+                    </div>
+                    <div class="form-group">
+                        <label for="kin-v">Final Velocity (v) [m/s]:</label>
+                        <input type="number" id="kin-v" step="any" placeholder="v">
+                    </div>
+                    <div class="form-group">
+                        <label for="kin-a">Acceleration (a) [m/s²]:</label>
+                        <input type="number" id="kin-a" step="any" placeholder="a">
+                    </div>
+                    <div class="form-group">
+                        <label for="kin-s">Displacement (s) [m]:</label>
+                        <input type="number" id="kin-s" step="any" placeholder="s">
+                    </div>
+                    <div class="form-group">
+                        <label for="kin-t">Time Interval (t) [s]:</label>
+                        <input type="number" id="kin-t" step="any" placeholder="t">
+                    </div>
+                </div>
+
+                <button id="btn-solve-kinematics" class="action-btn">Solve Motion Parameters</button>
+                <div id="kinematics-result-box" class="result-box hidden"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <footer class="app-footer">
+        Computational Toolbox • Created by <span>Chimfwembe</span>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            
+            // --- CONSTANTS ---
+            const ATOMIC_MASSES = {
+                H: 1.008, He: 4.003, Li: 6.94, Be: 9.012, B: 10.81, C: 12.011, N: 14.007, O: 15.999, F: 18.998, Ne: 20.180,
+                Na: 22.990, Mg: 24.305, Al: 26.982, Si: 28.085, P: 30.974, S: 32.06, Cl: 35.45, Ar: 39.948, K: 39.098,
+                Ca: 40.078, Sc: 44.956, Ti: 47.867, V: 50.942, Cr: 51.996, Mn: 54.938, Fe: 55.845, Co: 58.933, Ni: 58.693,
+                Cu: 63.546, Zn: 65.38, Ga: 69.723, Ge: 72.630, As: 74.922, Se: 78.971, Br: 79.904, Kr: 83.798, Rb: 85.468,
+                Sr: 87.62, Y: 88.906, Zr: 91.224, Nb: 92.906, Mo: 95.95, Ru: 101.07, Rh: 102.906, Pd: 106.42, Ag: 107.868,
+                Cd: 112.414, In: 114.818, Sn: 118.710, Sb: 121.760, Te: 127.60, I: 126.904, Xe: 131.293, Cs: 132.905,
+                Ba: 137.327, La: 138.905, Ce: 140.116, Pr: 140.908, Nd: 144.242, Sm: 150.36, Eu: 151.964, Gd: 157.25,
+                Tb: 158.925, Dy: 162.500, Ho: 164.930, Er: 167.259, Tm: 168.934, Yb: 173.054, Lu: 174.967, Hf: 178.49,
+                Ta: 180.948, W: 183.84, Re: 186.207, Os: 190.23, Ir: 192.217, Pt: 195.084, Au: 196.967, Hg: 200.592,
+                Tl: 204.38, Pb: 207.2, Bi: 208.980, Th: 232.038, Pa: 231.036, U: 238.029
+            };
+            const GAS_RTP_VOLUME = 24.0;
+
+            let CURRENT_BALANCED_REACTION = null;
+
+            // --- MAIN TABS SWITCHING LOGIC (FIXED) ---
+            const mainNav = document.querySelector(".main-nav");
+            const mainPanels = document.querySelectorAll(".main-tab-panel");
+
+            mainNav.addEventListener("click", (e) => {
+                const targetBtn = e.target.closest("button");
+                if (!targetBtn) return;
+
+                const targetTabId = targetBtn.dataset.tab;
+
+                // Toggle active navbar buttons
+                Array.from(mainNav.children).forEach(btn => btn.classList.remove("active"));
+                targetBtn.classList.add("active");
+
+                // Toggle corresponding cards visible/hidden
+                mainPanels.forEach(panel => {
+                    if (panel.id === targetTabId) {
+                        panel.classList.remove("hidden");
+                    } else {
+                        panel.classList.add("hidden");
+                    }
+                });
+            });
+
+            // --- SUB TABS LOGIC ---
+            const subNavs = document.querySelectorAll(".sub-nav");
+            subNavs.forEach(subNav => {
+                subNav.addEventListener("click", (e) => {
+                    const targetBtn = e.target.closest("button");
+                    if (!targetBtn) return;
+
+                    const targetSubTabId = targetBtn.dataset.subtab;
+                    const parentCard = subNav.closest(".module-card");
+
+                    Array.from(subNav.children).forEach(btn => btn.classList.remove("active"));
+                    targetBtn.classList.add("active");
+
+                    const subPanels = parentCard.querySelectorAll(".sub-tab-content");
+                    subPanels.forEach(panel => {
+                        if (panel.id === targetSubTabId) {
+                            panel.classList.remove("hidden");
+                        } else {
+                            panel.classList.add("hidden");
+                        }
+                    });
+                });
+            });
+
+            // Math Mode Toggle Switcher
+            const simModeInputs = document.querySelectorAll('input[name="sim-mode"]');
+            simModeInputs.forEach(radio => {
+                radio.addEventListener("change", (e) => {
+                    if (e.target.value === "2var") {
+                        document.getElementById("inputs-2var").classList.remove("hidden");
+                        document.getElementById("inputs-3var").classList.add("hidden");
+                    } else {
+                        document.getElementById("inputs-2var").classList.add("hidden");
+                        document.getElementById("inputs-3var").classList.remove("hidden");
+                    }
+                });
+            });
+
+
+            // --- CHEMISTRY BALANCER ENGINE ---
+            const parseChemicalFormula = (formulaStr) => {
+                const elementReg = /([A-Z][a-z]*)(\d*)/g;
+                const outMap = {};
+                let parsedMatch;
+                
+                if (formulaStr.includes('(')) {
+                    const bracketReg = /\(([^)]+)\)(\d*)/g;
+                    let replacedStr = formulaStr;
+                    let bracketMatch;
+                    while ((bracketMatch = bracketReg.exec(formulaStr)) !== null) {
+                        const innerElements = parseChemicalFormula(bracketMatch[1]);
+                        const multiplier = parseInt(bracketMatch[2] || 1, 10);
+                        Object.keys(innerElements).forEach(el => {
+                            outMap[el] = (outMap[el] || 0) + innerElements[el] * multiplier;
+                        });
+                        replacedStr = replacedStr.replace(bracketMatch[0], '');
+                    }
+                    formulaStr = replacedStr;
+                }
+
+                while ((parsedMatch = elementReg.exec(formulaStr)) !== null) {
+                    const el = parsedMatch[1];
+                    if (!ATOMIC_MASSES[el]) throw new Error(`Unknown element symbol: ${el}`);
+                    const count = parseInt(parsedMatch[2] || 1, 10);
+                    outMap[el] = (outMap[el] || 0) + count;
+                }
+                return outMap;
+            };
+
+            const getMolarMass = (formulaStr) => {
+                const elementCounts = parseChemicalFormula(formulaStr);
+                return Object.entries(elementCounts).reduce((acc, [el, count]) => acc + (ATOMIC_MASSES[el] * count), 0);
+            };
+
+            const parseReactionSide = (sideString) => {
+                return sideString.split('+').map(item => {
+                    const cleanItem = item.trim();
+                    const match = cleanItem.match(/^(\d*)([A-Za-z0-9()]+)$/);
+                    if (!match) throw new Error("Malformed formula construct encountered.");
+                    return {
+                        coefficient: parseInt(match[1] || 1, 10),
+                        formula: match[2]
+                    };
+                });
+            };
+
+            const balanceReactionEngine = (rawEquationStr) => {
+                if (!rawEquationStr.includes('->')) throw new Error("Missing reaction arrow (->)");
+                const [leftSide, rightSide] = rawEquationStr.split('->');
+                
+                const reactants = parseReactionSide(leftSide);
+                const products = parseReactionSide(rightSide);
+                const allCompounds = [...reactants, ...products];
+
+                const elementalSet = new Set();
+                allCompounds.forEach(c => Object.keys(parseChemicalFormula(c.formula)).forEach(el => elementalSet.add(el)));
+                const elementList = Array.from(elementalSet);
+
+                const matrix = elementList.map(el => {
+                    return allCompounds.map((comp, idx) => {
+                        const composition = parseChemicalFormula(comp.formula);
+                        const atomicCount = composition[el] || 0;
+                        return idx < reactants.length ? atomicCount : -atomicCount;
+                    });
+                });
+
+                const compoundCount = allCompounds.length;
+                let foundCoefficients = null;
+
+                const findNullspaceVector = (index, currentVector) => {
+                    if (foundCoefficients) return;
+                    if (index === compoundCount) {
+                        const satisfiesAll = matrix.every(row => 
+                            row.reduce((sum, val, idx) => sum + val * currentVector[idx], 0) === 0
+                        );
+                        if (satisfiesAll) foundCoefficients = [...currentVector];
+                        return;
+                    }
+                    for (let cVal = 1; cVal <= 12; cVal++) {
+                        currentVector[index] = cVal;
+                        findNullspaceVector(index + 1, currentVector);
+                        if (foundCoefficients) return;
+                    }
+                };
+
+                findNullspaceVector(0, new Array(compoundCount).fill(1));
+                if (!foundCoefficients) throw new Error("Could not compute simple integer balancing ratios automatically.");
+
+                const balancedReactants = reactants.map((r, i) => ({
+                    coeff: foundCoefficients[i], formula: r.formula, molarMass: getMolarMass(r.formula)
+                }));
+                const balancedProducts = products.map((p, i) => ({
+                    coeff: foundCoefficients[reactants.length + i], formula: p.formula, molarMass: getMolarMass(p.formula)
+                }));
+
+                return { reactants: balancedReactants, products: balancedProducts };
+            };
+
+            document.getElementById("btn-balance").addEventListener("click", () => {
+                const eqInput = document.getElementById("input-equation").value;
+                const outBox = document.getElementById("balance-result-box");
+                const outText = document.getElementById("output-balanced-eq");
+                const selectBox = document.getElementById("select-known-chem");
+
+                try {
+                    if (!eqInput.trim()) throw new Error("Please type an expression first.");
+                    const balancedData = balanceReactionEngine(eqInput);
+                    CURRENT_BALANCED_REACTION = balancedData;
+
+                    const mapStr = arr => arr.map(item => `${item.coeff === 1 ? '' : item.coeff}${item.formula}`).join(" + ");
+                    outText.textContent = `${mapStr(balancedData.reactants)} ➔ ${mapStr(balancedData.products)}`;
+
+                    selectBox.innerHTML = "";
+                    [...balancedData.reactants, ...balancedData.products].forEach(item => {
+                        const opt = document.createElement("option");
+                        opt.value = item.formula;
+                        opt.textContent = `${item.formula} (Molar Mass: ${item.molarMass.toFixed(3)} g/mol)`;
+                        selectBox.appendChild(opt);
+                    });
+
+                    outBox.classList.remove("hidden");
+                } catch (err) {
+                    outText.innerHTML = `<span class="error-message">Error: ${err.message}</span>`;
+                    outBox.classList.remove("hidden");
+                    document.getElementById("stoich-steps-output").innerHTML = "";
+                }
+            });
+
+            document.getElementById("btn-solve-stoich").addEventListener("click", () => {
+                if (!CURRENT_BALANCED_REACTION) return;
+                const knownFormula = document.getElementById("select-known-chem").value;
+                const knownMass = parseFloat(document.getElementById("input-known-mass").value);
+                const stepsZone = document.getElementById("stoich-steps-output");
+                stepsZone.innerHTML = "";
+
+                if (isNaN(knownMass) || knownMass <= 0) {
+                    stepsZone.innerHTML = `<div class="error-message">Please enter a valid positive mass value.</div>`;
+                    return;
+                }
+
+                const allComps = [...CURRENT_BALANCED_REACTION.reactants, ...CURRENT_BALANCED_REACTION.products];
+                const sourceChem = allComps.find(c => c.formula === knownFormula);
+                const baseMoles = knownMass / sourceChem.molarMass;
+
+                allComps.forEach(targetChem => {
+                    if (targetChem.formula === sourceChem.formula) return;
+
+                    const moleRatio = targetChem.coeff / sourceChem.coeff;
+                    const computedMoles = baseMoles * moleRatio;
+                    const computedMass = computedMoles * targetChem.molarMass;
+
+                    const card = document.createElement("div");
+                    card.className = "step-card";
+                    
+                    let extraGasInfo = "";
+                    const isGas = ["O2", "Cl2", "H2", "N2", "CO2", "NH3", "SO2"].includes(targetChem.formula);
+                    if (isGas) {
+                        const gasVol = computedMoles * GAS_RTP_VOLUME;
+                        extraGasInfo = `<br><strong>Volume at RTP:</strong> ${gasVol.toFixed(3)} dm³ (liters)`;
+                    }
+
+                    card.innerHTML = `
+                        <div class="step-header">Target Substance Yield: ${targetChem.formula}</div>
+                        <div>Molar Ratio: ${targetChem.coeff} / ${sourceChem.coeff} = ${moleRatio.toFixed(4)}</div>
+                        <div>Calculated Moles: ${computedMoles.toFixed(4)} mol</div>
+                        <div><strong>Predicted Mass:</strong> ${computedMass.toFixed(3)} grams ${extraGasInfo}</div>
+                    `;
+                    stepsZone.appendChild(card);
+                });
+            });
+
+            document.getElementById("btn-find-limiting").addEventListener("click", () => {
+                const inputEq = document.getElementById("input-limiting-eq").value;
+                const massA = parseFloat(document.getElementById("input-mass-a").value);
+                const massB = parseFloat(document.getElementById("input-mass-b").value);
+                const outBox = document.getElementById("limiting-result-box");
+                outBox.innerHTML = "";
+
+                try {
+                    if (!inputEq.trim() || isNaN(massA) || isNaN(massB)) throw new Error("Ensure all inputs and reactions are filled.");
+                    const balancedData = balanceReactionEngine(inputEq);
+                    
+                    if (balancedData.reactants.length !== 2) throw new Error("Limiting subtab requires exactly 2 starting reactants.");
+
+                    const rA = balancedData.reactants[0];
+                    const rB = balancedData.reactants[1];
+
+                    const molesA = massA / rA.molarMass;
+                    const molesB = massB / rB.molarMass;
+
+                    const RMR = rA.coeff / rB.coeff;
+                    const AMR = molesA / molesB;
+
+                    let limiting, excess, leftoverMass;
+
+                    if (AMR < RMR) {
+                        limiting = rA;
+                        excess = rB;
+                        const molesConsumedB = molesA * (rB.coeff / rA.coeff);
+                        leftoverMass = (molesB - molesConsumedB) * rB.molarMass;
+                    } else {
+                        limiting = rB;
+                        excess = rA;
+                        const molesConsumedA = molesB * (rA.coeff / rB.coeff);
+                        leftoverMass = (molesA - molesConsumedA) * rA.molarMass;
+                    }
+
+                    outBox.innerHTML = `
+                        <div class="step-header">Analysis Steps (AMR vs RMR Method)</div>
+                        <div class="step-card">
+                            <p>• Moles of ${rA.formula}: ${molesA.toFixed(4)} mol (Given: ${massA}g)</p>
+                            <p>• Moles of ${rB.formula}: ${molesB.toFixed(4)} mol (Given: ${massB}g)</p>
+                            <p>• <strong>Required Molar Ratio (RMR)</strong> [${rA.formula}/${rB.formula}]: ${rA.coeff} / ${rB.coeff} = <strong>${RMR.toFixed(4)}</strong></p>
+                            <p>• <strong>Available Molar Ratio (AMR)</strong> [${rA.formula}/${rB.formula}]: ${molesA.toFixed(4)} / ${molesB.toFixed(4)} = <strong>${AMR.toFixed(4)}</strong></p>
+                        </div>
+                        <div class="step-card" style="margin-top:0.8rem; border-color: var(--emerald);">
+                            <p>🚨 <strong>Limiting Reactant:</strong> <span style="color:var(--error-red); font-weight:700;">${limiting.formula}</span></p>
+                            <p>📦 <strong>Excess Reactant:</strong> ${excess.formula}</p>
+                            <p>⚖️ <strong>Unreacted Excess Mass Remaining:</strong> ${leftoverMass.toFixed(3)} grams</p>
+                        </div>
+                    `;
+                    outBox.classList.remove("hidden");
+
+                } catch (err) {
+                    outBox.innerHTML = `<span class="error-message">Error: ${err.message}</span>`;
+                    outBox.classList.remove("hidden");
+                }
+            });
+
+
+            // --- MATHEMATICS MODULE CALCULATIONS ---
+            document.getElementById("btn-solve-quadratic").addEventListener("click", () => {
+                const a = parseFloat(document.getElementById("quad-a").value);
+                const b = parseFloat(document.getElementById("quad-b").value);
+                const c = parseFloat(document.getElementById("quad-c").value);
+                const outBox = document.getElementById("quadratic-result-box");
+                outBox.innerHTML = "";
+
+                if (isNaN(a) || isNaN(b) || isNaN(c)) {
+                    outBox.innerHTML = `<div class="error-message">Provide all coefficients cleanly.</div>`;
+                    outBox.classList.remove("hidden");
+                    return;
+                }
+
+                if (a === 0) {
+                    outBox.innerHTML = `<div class="error-message">Coefficient 'a' cannot be 0 in a standard quadratic function.</div>`;
+                    outBox.classList.remove("hidden");
+                    return;
+                }
+
+                const discriminant = (b * b) - (4 * a * c);
+                outBox.innerHTML = `<h4>Solution Output:</h4>`;
+
+                if (discriminant > 0) {
+                    const root1 = (-b + Math.sqrt(discriminant)) / (2 * a);
+                    const root2 = (-b - Math.sqrt(discriminant)) / (2 * a);
+                    outBox.innerHTML += `<p class="highlight-text">Two Distinct Real Roots:</p>
+                                         <p>x₁ = ${root1.toFixed(4)}</p><p>x₂ = ${root2.toFixed(4)}</p>`;
+                } else if (discriminant === 0) {
+                    const root = -b / (2 * a);
+                    outBox.innerHTML += `<p class="highlight-text">One Repeated Real Root:</p><p>x = ${root.toFixed(4)}</p>`;
+                } else {
+                    const realPart = -b / (2 * a);
+                    const imagPart = Math.sqrt(-discriminant) / (2 * a);
+                    outBox.innerHTML += `<p class="highlight-text">Complex / Imaginary Roots:</p>
+                                         <p>x₁ = ${realPart.toFixed(4)} + ${imagPart.toFixed(4)}i</p>
+                                         <p>x₂ = ${realPart.toFixed(4)} - ${imagPart.toFixed(4)}i</p>`;
+                }
+                outBox.classList.remove("hidden");
+            });
+
+            document.getElementById("btn-solve-simultaneous").addEventListener("click", () => {
+                const mode = document.querySelector('input[name="sim-mode"]:checked').value;
+                const outBox = document.getElementById("simultaneous-result-box");
+                outBox.innerHTML = "";
+
+                try {
+                    if (mode === "2var") {
+                        const a1 = parseFloat(document.getElementById("eq2-a1").value);
+                        const b1 = parseFloat(document.getElementById("eq2-b1").value);
+                        const c1 = parseFloat(document.getElementById("eq2-c1").value);
+                        const a2 = parseFloat(document.getElementById("eq2-a2").value);
+                        const b2 = parseFloat(document.getElementById("eq2-b2").value);
+                        const c2 = parseFloat(document.getElementById("eq2-c2").value);
+
+                        if ([a1, b1, c1, a2, b2, c2].some(isNaN)) throw new Error("Fill up all 2-variable inputs matrix inputs.");
+
+                        const D = (a1 * b2) - (b1 * a2);
+                        if (D === 0) throw new Error("System has no unique solution (Main Determinant D = 0).");
+
+                        const Dx = (c1 * b2) - (b1 * c2);
+                        const Dy = (a1 * c2) - (c1 * a2);
+
+                        outBox.innerHTML = `<h4>System Roots:</h4>
+                                            <p class="highlight-text">x = ${(Dx / D).toFixed(4)}</p>
+                                            <p class="highlight-text">y = ${(Dy / D).toFixed(4)}</p>`;
+                    } else {
+                        const a1 = parseFloat(document.getElementById("eq3-a1").value);
+                        const b1 = parseFloat(document.getElementById("eq3-b1").value);
+                        const c1 = parseFloat(document.getElementById("eq3-c1").value);
+                        const d1 = parseFloat(document.getElementById("eq3-d1").value);
+
+                        const a2 = parseFloat(document.getElementById("eq3-a2").value);
+                        const b2 = parseFloat(document.getElementById("eq3-b2").value);
+                        const c2 = parseFloat(document.getElementById("eq3-c2").value);
+                        const d2 = parseFloat(document.getElementById("eq3-d2").value);
+
+                        const a3 = parseFloat(document.getElementById("eq3-a3").value);
+                        const b3 = parseFloat(document.getElementById("eq3-b3").value);
+                        const c3 = parseFloat(document.getElementById("eq3-c3").value);
+                        const d3 = parseFloat(document.getElementById("eq3-d3").value);
+
+                        if ([a1,b1,c1,d1,a2,b2,c2,d2,a3,b3,c3,d3].some(isNaN)) throw new Error("Fill up all 3-variable inputs matrix elements.");
+
+                        const det3x3 = (ma, mb, mc, na, nb, nc, pa, pb, pc) => {
+                            return ma * (nb * pc - nc * pb) - mb * (na * pc - nc * pa) + mc * (na * pb - nb * pa);
+                        };
+
+                        const D = det3x3(a1, b1, c1, a2, b2, c2, a3, b3, c3);
+                        if (D === 0) throw new Error("System has no unique solution (Main Matrix Determinant D = 0).");
+
+                        const Dx = det3x3(d1, b1, c1, d2, b2, c2, d3, b3, c3);
+                        const Dy = det3x3(a1, d1, c1, a2, d2, c2, a3, d3, c3);
+                        const Dz = det3x3(a1, b1, d1, a2, b2, d2, a3, b3, d3);
+
+                        outBox.innerHTML = `<h4>System Roots:</h4>
+                                            <p class="highlight-text">x = ${(Dx / D).toFixed(4)}</p>
+                                            <p class="highlight-text">y = ${(Dy / D).toFixed(4)}</p>
+                                            <p class="highlight-text">z = ${(Dz / D).toFixed(4)}</p>`;
+                    }
+                    outBox.classList.remove("hidden");
+                } catch (err) {
+                    outBox.innerHTML = `<span class="error-message">Error: ${err.message}</span>`;
+                    outBox.classList.remove("hidden");
+                }
+            });
+
+
+            // --- PHYSICS MODULE KINEMATICS ---
+            document.getElementById("btn-solve-kinematics").addEventListener("click", () => {
+                const outBox = document.getElementById("kinematics-result-box");
+                outBox.innerHTML = "";
+
+                const inputElements = [
+                    { id: 'u', val: parseFloat(document.getElementById("kin-u").value) },
+                    { id: 'v', val: parseFloat(document.getElementById("kin-v").value) },
+                    { id: 'a', val: parseFloat(document.getElementById("kin-a").value) },
+                    { id: 's', val: parseFloat(document.getElementById("kin-s").value) },
+                    { id: 't', val: parseFloat(document.getElementById("kin-t").value) }
+                ];
+
+                const knowns = inputElements.filter(item => !isNaN(item.val));
+                
+                if (knowns.length !== 3) {
+                    outBox.innerHTML = `<span class="error-message">Error: You provided ${knowns.length} parameters. Please specify exactly 3 variables to uniquely calculate motion outputs.</span>`;
+                    outBox.classList.remove("hidden");
+                    return;
+                }
+
+                const k = {};
+                knowns.forEach(item => k[item.id] = item.val);
+
+                try {
+                    if (k.s === undefined) {
+                        k.s = k.t !== undefined ? (k.u !== undefined ? (k.u * k.t + 0.5 * k.a * k.t * k.t) : (k.v * k.t - 0.5 * k.a * k.t * k.t)) : ((k.v * k.v - k.u * k.u) / (2 * k.a));
+                    }
+                    if (k.v === undefined) {
+                        if (k.t !== undefined) k.v = k.u + k.a * k.t;
+                        else {
+                            const vSq = (k.u * k.u) + (2 * k.a * k.s);
+                            if (vSq < 0) throw new Error("Imaginary roots encountered. Constraints are physically impossible.");
+                            k.v = Math.sqrt(vSq);
+                        }
+                    }
+                    if (k.t === undefined) {
+                        if (k.a !== 0) k.t = (k.v - k.u) / k.a;
+                        else k.t = k.s / k.u;
+                    }
+                    if (k.a === undefined) {
+                        k.a = (k.v - k.u) / k.t;
+                    }
+                    if (k.u === undefined) {
+                        k.u = k.v - k.a * k.t;
+                    }
+
+                    if (k.t < 0) throw new Error("Computed result yielded an impossible negative time scale framework.");
+
+                    outBox.innerHTML = `
+                        <h4>Motion State Solution Array:</h4>
+                        <div class="form-grid-kinematics">
+                            <div class="step-card">Initial Velocity (u):<br><strong>${k.u.toFixed(3)} m/s</strong></div>
+                            <div class="step-card">Final Velocity (v):<br><strong>${k.v.toFixed(3)} m/s</strong></div>
+                            <div class="step-card">Acceleration (a):<br><strong>${k.a.toFixed(3)} m/s²</strong></div>
+                            <div class="step-card">Displacement (s):<br><strong>${k.s.toFixed(3)} m</strong></div>
+                            <div class="step-card">Time Interval (t):<br><strong>${k.t.toFixed(3)} s</strong></div>
+                        </div>
+                    `;
+                    outBox.classList.remove("hidden");
+
+                } catch (err) {
+                    outBox.innerHTML = `<span class="error-message">Calculation Refused: ${err.message}</span>`;
+                    outBox.classList.remove("hidden");
+                }
+            });
+
+        });
+    </script>
+</body>
+</html>
